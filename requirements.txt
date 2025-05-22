@@ -1,0 +1,12 @@
+FastAPI
+uvicorn
+pydantic
+httpx
+beautifulsoup4
+requests
+motor  # For MongoDB
+psycopg2-binary  # For PostgreSQL
+openai  # For OpenAI API integration
+pytest  # For testing
+pytest-asyncio  # For async testing
+flask  # If Flask is chosen instead of FastAPI
