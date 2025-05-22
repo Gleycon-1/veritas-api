@@ -1,3 +1,9 @@
+# Esta função analisa uma URL e compara com portais confiáveis para ajudar a detectar fake news
+def analisar_url(url: str):
+    # lógica aqui
+    ...
+
+
 from bs4 import BeautifulSoup
 import requests
 

@@ -28,3 +28,20 @@ def analyze(request: AnalyzeRequest):
         raise HTTPException(status_code=400, detail="Texto não pode ser vazio.")
     classificacao, cor, mensagem = mock_analyze_text(request.texto)
     return AnalyzeResponse(classificacao=classificacao, cor=cor, mensagem=mensagem)
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from core.llm_integration import analisar_conteudo_llm
+
+router = APIRouter()
+
+class AnalyzeRequest(BaseModel):
+    text: str
+
+@router.post("/analyze")
+def analyze(request: AnalyzeRequest):
+    try:
+        resultado = analisar_conteudo_llm(request.text)
+        return {"resultado": resultado}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

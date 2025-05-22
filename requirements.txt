@@ -10,3 +10,9 @@ openai  # For OpenAI API integration
 pytest  # For testing
 pytest-asyncio  # For async testing
 flask  # If Flask is chosen instead of FastAPI
+
+openai
+python-dotenv
+
+pip install openai python-dotenv
+
