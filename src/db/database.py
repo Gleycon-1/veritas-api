@@ -10,7 +10,7 @@ load_dotenv()
 # Lê a URL do banco de dados
 DATABASE_URL = os.getenv("DATABASE_URL") or "sqlite:///./test.db"
 
-# Configura argumentos específicos para SQLite
+# Configura argumentos para SQLite, se necessário
 engine_kwargs = {}
 if DATABASE_URL.startswith("sqlite"):
     engine_kwargs["connect_args"] = {"check_same_thread": False}
@@ -26,9 +26,6 @@ Base = declarative_base()
 
 # Dependency para FastAPI
 def get_db():
-    """
-    Gera uma sessão de banco de dados para uso com FastAPI.
-    """
     db = SessionLocal()
     try:
         yield db

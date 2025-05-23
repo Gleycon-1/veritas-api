@@ -1,20 +1,24 @@
-from fastapi import APIRouter, HTTPException, Depends
+# src/api/routes_status.py
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-
-from src.models.analysis import Analysis  # Schema de resposta (Pydantic)
-from src.db.models import get_analysis_status  # Função de consulta ao banco
-from src.db.database import get_db  # Dependência do banco
+from src.db.database import get_db
+from src.db import crud_operations # Importa o módulo crud_operations
+from src.models.analysis import Analysis # Importa o schema Pydantic para resposta
 
 router = APIRouter()
 
-@router.get("/status/{id}", response_model=Analysis)
-def get_status(id: str, db: Session = Depends(get_db)):
+@router.get("/{analysis_id}", response_model=Analysis) # Prefix já é /status
+def get_status_by_id_endpoint(analysis_id: str, db: Session = Depends(get_db)):
     """
-    Retorna o status de uma análise com base no ID.
+    Consulta o status de uma análise pelo seu ID.
     """
-    analysis = get_analysis_status(db, id)
-    if analysis is None:
+    # Usa a função get_analysis_by_id do crud_operations.py
+    analysis = crud_operations.get_analysis_by_id(db, analysis_id)
+    if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    
+
+    # Se você quiser retornar apenas o status e a mensagem, ajuste o response_model
+    # Mas para um GET /status/{id}, retornar o objeto completo é mais informativo.
     return analysis
