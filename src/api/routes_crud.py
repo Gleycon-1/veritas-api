@@ -1,27 +1,13 @@
-# src/api/routes_analyze.py (ou src/api/routes_crud.py, dependendo de onde você os colocou)
+# src/api/routes_crud.py
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime
-
 from src.db.database import get_db
 from src.db import crud_operations
 from src.models.analysis import Analysis, AnalysisCreate, AnalysisUpdateStatus # Importa os Pydantic schemas
+from pydantic import BaseModel # Para a resposta de delete
 
 router = APIRouter()
-
-# --- Pydantic Request Schemas (se não estiverem em src/models/analysis.py, defina-os aqui) ---
-# Se já estiverem em src/models/analysis.py, como no passo 1, você pode remover estas definições duplicadas.
-# class AnalysisCreate(BaseModel):
-#     content: str
-#     classification: Optional[str] = Field("pending", description="Initial classification status")
-#     status: Optional[str] = Field("pending", description="Initial processing status")
-#     sources: Optional[List[str]] = None
-
-# class AnalysisUpdateStatus(BaseModel):
-#     new_status: str
 
 # --- Pydantic Response Schema for Delete (Opcional, para resposta mais estruturada) ---
 class DeleteResponse(BaseModel):

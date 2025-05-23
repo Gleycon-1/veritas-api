@@ -19,6 +19,4 @@ def get_status_by_id_endpoint(analysis_id: str, db: Session = Depends(get_db)):
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # Se você quiser retornar apenas o status e a mensagem, ajuste o response_model
-    # Mas para um GET /status/{id}, retornar o objeto completo é mais informativo.
     return analysis

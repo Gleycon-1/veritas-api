@@ -9,7 +9,7 @@ class Analysis(BaseModel):
     # ID como str (UUID), conforme definido no seu AnalysisModel
     id: str
     content: str
-    classification: str # Ex: 'fake', 'true', 'satire', 'opinion', 'pending'
+    classification: str # Ex: 'fake', 'true', 'satire', 'opinião', 'pending'
     status: str         # Ex: 'pending', 'completed', 'failed', 'processing'
     sources: Optional[List[str]] = None # Lista de strings para fontes (Pydantic lida com isso)
     created_at: datetime # Tipo datetime para datas
