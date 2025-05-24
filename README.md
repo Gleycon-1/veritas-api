@@ -60,30 +60,52 @@ Para fornecer uma representação visual rápida e intuitiva da natureza do cont
 O projeto segue uma arquitetura modular, separando responsabilidades para facilitar escalabilidade e manutenção. Esta estrutura clara permite que a API seja robusta e fácil de expandir: 
 
 veritas-api/
-├── src/
-│   ├── main.py                     # Inicialização da aplicação e roteamento principal
-│   ├── api/
-│   │   ├── routes_analyze.py       # Endpoint: /analyze (Análise com LLMs)
-│   │   ├── routes_crud.py          # Endpoints: /analysis/... (Operações CRUD de análises)
-│   │   ├── routes_status.py        # Endpoint: /status (Status da API ou de análises)
-│   │   ├── routes_feedback.py      # Endpoint: /feedback (Coleta de feedback)
-│   │   └── routes_history.py       # Endpoint: /history (Histórico de análises)
-│   ├── models/
-│   │   └── analysis.py             # Schemas Pydantic e modelos de dados para a API
-│   ├── core/
-│   │   ├── config.py               # Carrega variáveis de ambiente e configurações globais
-│   │   ├── llm_integration.py      # Lógica de integração e comunicação com LLMs (Gemini, OpenAI)
-│   │   └── verification.py         # Futuro: Lógica de verificação de conteúdo aprofundada
-│   ├── db/
-│   │   ├── crud_operations.py      # Funções para operações CRUD no banco de dados
-│   │   ├── database.py             # Configuração da conexão e sessão do banco de dados (SQLAlchemy)
-│   │   └── models.py               # Definições de modelos de banco de dados (SQLAlchemy ORM)
-│   └── utils/
-│       └── scraping.py             # Futuro: Utilitários para coleta de dados externos confiáveis
-├── .env                            # Variáveis de ambiente (API Keys, URL do DB, etc.)
-└── requirements.txt                # Dependências do projeto Python
-└── README.md                       # Este arquivo (documentação do projeto)
 
+├── src/
+
+│ ├── main.py # Inicialização da aplicação e roteamento principal
+
+│ ├── api/
+
+│ │ ├── routes_analyze.py # Endpoint: /analyze (Análise com LLMs)
+
+│ │ ├── routes_crud.py # Endpoints: /analysis/... (Operações CRUD de análises)
+
+│ │ ├── routes_status.py # Endpoint: /status (Status da API ou de análises)
+
+│ │ ├── routes_feedback.py # Endpoint: /feedback (Coleta de feedback)
+
+│ │ └── routes_history.py # Endpoint: /history (Histórico de análises)
+
+│ ├── models/
+
+│ │ └── analysis.py # Schemas Pydantic e modelos de dados para a API
+
+│ ├── core/
+
+│ │ ├── config.py # Carrega variáveis de ambiente e configurações globais
+
+│ │ ├── llm_integration.py # Lógica de integração e comunicação com LLMs (Gemini, OpenAI)
+
+│ │ └── verification.py # Futuro: Lógica de verificação de conteúdo aprofundada
+
+│ ├── db/
+
+│ │ ├── crud_operations.py # Funções para operações CRUD no banco de dados
+
+│ │ ├── database.py # Configuração da conexão e sessão do banco de dados (SQLAlchemy)
+
+│ │ └── models.py # Definições de modelos de banco de dados (SQLAlchemy ORM)
+
+│ └── utils/
+
+│ └── scraping.py # Futuro: Utilitários para coleta de dados externos confiáveis
+
+├── .env # Variáveis de ambiente (API Keys, URL do DB, etc.)
+
+└── requirements.txt # Dependências do projeto Python
+
+└── README.md # Este arquivo (documentação do projeto)
 
 ---
 
