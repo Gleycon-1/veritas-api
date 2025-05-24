@@ -47,16 +47,21 @@ def extract_json_from_text(text: str) -> dict:
 
 # Função principal para análise de conteúdo com LLM
 async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") -> dict:
+    # --- PROMPT MELHORADO PARA CLAREZA NAS CLASSIFICAÇÕES ---
     prompt = f"""
-    Analise o seguinte conteúdo e classifique-o como:
-    - 'fake_news' (se for claramente falso ou desinformativo)
-    - 'verdadeiro' (se for factual e verificável)
-    - 'sátira' (se for humorístico, irônico, sem intenção de enganar)
-    - 'opinião' (se for uma expressão de ponto de vista, não um fato)
-    - 'parcial' (se apresentar vieses claros, mas não for totalmente falso)
-    - 'indefinido' (se não for possível classificar claramente ou houver ambiguidade)
+    Analise cuidadosamente o seguinte conteúdo e classifique-o usando UMA das seguintes categorias. Seja rigoroso na distinção.
+
+    **Categorias e suas Definições:**
+    - 'fake_news': Conteúdo comprovadamente falso ou enganoso, criado para desinformar. Busca enganar ativamente.
+    - 'verdadeiro': Conteúdo factual, verificável e preciso, baseado em evidências ou dados confirmados.
+    - 'sátira': Conteúdo humorístico, irônico ou que utiliza o exagero e a paródia. **Não tem intenção de enganar**, mas sim de divertir ou criticar de forma cômica.
+    - 'opinião': Expressão de um ponto de vista pessoal, crença ou interpretação. Geralmente usa termos como 'eu acho', 'na minha opinião', e não se apresenta como fato universal. **Não busca disfarçar sua natureza subjetiva.**
+    - 'parcial': Conteúdo que apresenta um viés claro, favorecendo ou desfavorecendo um lado, uma ideia ou um grupo. Pode usar linguagem carregada, omitir informações relevantes do outro lado, ou apresentar fatos de forma seletiva para influenciar o leitor. **Tenta parecer objetivo ou neutro, mas não é.**
+    - 'indefinido': Conteúdo que é ambíguo, sem contexto claro, ou que não pode ser classificado em nenhuma das outras categorias devido à sua falta de sentido, clareza ou informações insuficientes.
 
     Forneça a classificação e uma breve mensagem/justificativa em formato JSON.
+    Seja conciso na justificativa, mas explique por que escolheu a categoria.
+    
     Exemplo de formato de resposta:
     ```json
     {{
@@ -68,6 +73,7 @@ async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") 
     Conteúdo a ser analisado:
     "{content}"
     """
+    # --- FIM DO PROMPT MELHORADO ---
 
     try:
         if preferred_llm.lower() == "openai" and openai_client:
@@ -84,10 +90,8 @@ async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") 
 
         elif preferred_llm.lower() == "gemini":
             print("INFO: Usando Google Gemini para análise.")
-            # --- ATENÇÃO: LINHA ALTERADA AQUI ---
             # O modelo 'gemini-pro' deu 404. Tentando 'gemini-1.5-flash', que é mais recente e comum.
             model = genai.GenerativeModel('gemini-1.5-flash')
-            # ------------------------------------
             
             # Tenta gerar conteúdo solicitando JSON diretamente
             try:
