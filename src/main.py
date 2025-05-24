@@ -2,37 +2,40 @@
 
 import sys
 import os
-from fastapi import FastAPI # Importa FastAPI primeiro
+from fastapi import FastAPI
 
 # Adiciona o diretório pai (raiz do projeto) ao sys.path
-# Isso permite que importações como 'from src.db.database import ...' funcionem
+# Isso garante que Python possa encontrar os módulos dentro de 'src'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Cria a instância da aplicação FastAPI ANTES de incluir qualquer roteador
-app = FastAPI(title="Veritas API", description="Combatendo a desinformação com IA", version="1.0")
+app = FastAPI(
+    title="Veritas API",
+    description="Combatendo a desinformação com IA",
+    version="1.0"
+)
 
-# Importa os roteadores da API
-# Importar DEPOIS que 'app' for definida
+# Importa os roteadores DEPOIS de adicionar o diretório pai ao sys.path
 from src.api.routes_analyze import router as analyze_router
 from src.api.routes_status import router as status_router
 from src.api.routes_feedback import router as feedback_router
 from src.api.routes_history import router as history_router
-from src.api.routes_crud import router as crud_router # Este é o router com seus endpoints CRUD
+from src.api.routes_crud import router as crud_router # Importa o roteador CRUD
 
-# Rota raiz
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Veritas API - Combatting Disinformation!"}
 
-# Inclusão das rotas com seus prefixos
-# Os roteadores devem ser incluídos após 'app' ser criada.
-app.include_router(crud_router) # Se routes_crud.py já define os prefixos /analysis, /analysis/{id}, não precisa de prefixo aqui
-app.include_router(analyze_router, prefix="/analyze")
-app.include_router(status_router, prefix="/status")
-app.include_router(feedback_router, prefix="/feedback")
-app.include_router(history_router, prefix="/history")
+# Inclui os roteadores no aplicativo FastAPI.
+# Os prefixos são definidos DENTRO de cada APIRouter nos arquivos de rotas,
+# então aqui apenas os incluímos.
+app.include_router(crud_router)     # Endpoint: /analysis/...
+app.include_router(analyze_router)  # Endpoint: /analyze/... (Este é o da LLM)
+app.include_router(status_router)   # Endpoint: /status/...
+app.include_router(feedback_router) # Endpoint: /feedback/...
+app.include_router(history_router)  # Endpoint: /history/...
 
-# Função para análise de URL (placeholder, a ser implementada de verdade)
+# Exemplo de uma função (fora do contexto da API) que poderia analisar uma URL.
+# Esta função não está ligada a nenhum endpoint HTTP diretamente.
 def analisar_url(url: str):
     """
     Função (a ser implementada) que analisa a URL fornecida
@@ -40,8 +43,7 @@ def analisar_url(url: str):
     """
     pass
 
-# Execução direta com uvicorn (para ambiente de desenvolvimento)
 if __name__ == "__main__":
     import uvicorn
-    # A string "src.main:app" aponta para o módulo src/main.py e a instância 'app'
+    # Executa o aplicativo FastAPI usando Uvicorn
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
