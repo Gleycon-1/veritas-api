@@ -57,4 +57,63 @@ Para fornecer uma representação visual rápida e intuitiva da natureza do cont
 
 ## 🧱 Arquitetura do Projeto
 
-O projeto segue uma arquitetura modular, separando responsabilidades para facilitar escalabilidade e manutenção. Esta estrutura clara permite que a API seja robusta e fácil de expandir:
+O projeto segue uma arquitetura modular, separando responsabilidades para facilitar escalabilidade e manutenção. Esta estrutura clara permite que a API seja robusta e fácil de expandir: 
+
+veritas-api/
+├── src/
+│   ├── main.py                     # Inicialização da aplicação e roteamento principal
+│   ├── api/
+│   │   ├── routes_analyze.py       # Endpoint: /analyze (Análise com LLMs)
+│   │   ├── routes_crud.py          # Endpoints: /analysis/... (Operações CRUD de análises)
+│   │   ├── routes_status.py        # Endpoint: /status (Status da API ou de análises)
+│   │   ├── routes_feedback.py      # Endpoint: /feedback (Coleta de feedback)
+│   │   └── routes_history.py       # Endpoint: /history (Histórico de análises)
+│   ├── models/
+│   │   └── analysis.py             # Schemas Pydantic e modelos de dados para a API
+│   ├── core/
+│   │   ├── config.py               # Carrega variáveis de ambiente e configurações globais
+│   │   ├── llm_integration.py      # Lógica de integração e comunicação com LLMs (Gemini, OpenAI)
+│   │   └── verification.py         # Futuro: Lógica de verificação de conteúdo aprofundada
+│   ├── db/
+│   │   ├── crud_operations.py      # Funções para operações CRUD no banco de dados
+│   │   ├── database.py             # Configuração da conexão e sessão do banco de dados (SQLAlchemy)
+│   │   └── models.py               # Definições de modelos de banco de dados (SQLAlchemy ORM)
+│   └── utils/
+│       └── scraping.py             # Futuro: Utilitários para coleta de dados externos confiáveis
+├── .env                            # Variáveis de ambiente (API Keys, URL do DB, etc.)
+└── requirements.txt                # Dependências do projeto Python
+└── README.md                       # Este arquivo (documentação do projeto)
+
+
+---
+
+## 🔗 Token – Veritas Token (Plano Blockchain)
+
+Será criado um token próprio para:
+
+* **Autenticação Premium:** Conceder acesso a funcionalidades avançadas e maior limite de requisições.
+* **Sistema de Reputação por Feedback Humano:** Recompensar usuários por feedback preciso e útil na validação de análises.
+* **Recompensas por Validações Confiáveis:** Incentivar a participação da comunidade na curadoria de informações.
+* **Futuras Integrações com Plataformas Descentralizadas:** Facilitar a interoperabilidade em ecossistemas Web3.
+
+---
+
+## 🚀 Visão de Futuro
+
+* **Plugins de Integração:** Desenvolver plugins para plataformas populares como WordPress, Shopify e redes sociais para análise de conteúdo em tempo real.
+* **Uso Corporativo:** Expandir para análise de reputação de marcas, monitoramento de notícias e validação de informações em ambientes empresariais.
+* **Expansão Setorial:** Levar a análise de conteúdo para os setores **educacional** (verificação de material didático), **jurídico** (análise de precedentes e documentos) e **político** (monitoramento de discursos e propostas), auxiliando na tomada de decisões informadas.
+* **Parcerias Estratégicas:** Buscar colaborações com grandes empresas de tecnologia e plataformas de notícias para ampliar o alcance e impacto da Veritas API.
+
+---
+
+## 📎 Contribuição
+
+Contribuições são muito bem-vindas! Se você tem ideias para melhorias, novas funcionalidades ou encontrou algum problema:
+
+* Sinta-se à vontade para abrir **issues** no repositório para relatar bugs ou sugerir funcionalidades.
+* Envie **pull requests** com suas contribuições de código.
+
+Vamos juntos combater a desinformação com tecnologia e inteligência! 💡
+
+---
