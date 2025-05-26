@@ -1,22 +1,23 @@
-# src/core/config.py
-
 import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv() # Esta linha é crucial para carregar as variáveis do .env
+class Settings(BaseSettings):
+    # Configurações para carregar variáveis de ambiente do arquivo .env
+    # 'extra='ignore'' ignora chaves no .env que não estão definidas nesta classe,
+    # evitando erros se você tiver variáveis extras por lá.
+    model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 
-class Settings:
-    # Garanta que esses nomes de variáveis correspondam aos do seu .env
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
+    # Variáveis de ambiente para as APIs das LLMs
+    # Usamos os.getenv com um padrão de string vazia para que a API não falhe ao iniciar
+    # se uma chave não estiver definida. A lógica de fallback em llm_integration.py
+    # vai lidar com a ausência/validade da chave.
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY", "")
+    HUGGINGFACE_MODEL_ID: str = os.getenv("HUGGINGFACE_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.2") # ID padrão para o modelo HF
 
-    # Adicione validação básica se quiser, para avisar se alguma chave está faltando
-    if not DATABASE_URL:
-        print("WARNING: DATABASE_URL não configurada no .env!")
-    if not OPENAI_API_KEY:
-        print("WARNING: OPENAI_API_KEY não configurada no .env!")
-    if not GEMINI_API_KEY:
-        print("WARNING: GEMINI_API_KEY não configurada no .env!")
+    # Configuração do banco de dados
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./veritas.db") # Padrão para SQLite local
 
+# Cria uma instância das configurações para ser importada em outras partes da aplicação
 settings = Settings()
