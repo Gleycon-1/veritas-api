@@ -8,34 +8,47 @@ from fastapi import FastAPI
 # Isso garante que Python possa encontrar os módulos dentro de 'src'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Importa os roteadores
+from src.api.routes_analyze import router as analyze_router
+from src.api.routes_status import router as status_router
+from src.api.routes_feedback import router as feedback_router
+from src.api.routes_history import router as history_router
+from src.api.routes_crud import router as crud_router
+from src.api.routes_auth import router as auth_router # Importa o roteador de autenticação
+
+# Importa o Base e o engine do seu modelo de usuário para criar as tabelas.
+# ESTE É O IMPORT CRÍTICO: Certifique-se que src/models/user.py define a Base
+# que todos os seus modelos (User, Analysis) herdam.
+from src.models.user import Base, engine
+
 app = FastAPI(
     title="Veritas API",
     description="Combatendo a desinformação com IA",
     version="1.0"
 )
 
-# Importa os roteadores DEPOIS de adicionar o diretório pai ao sys.path
-from src.api.routes_analyze import router as analyze_router
-from src.api.routes_status import router as status_router
-from src.api.routes_feedback import router as feedback_router
-from src.api.routes_history import router as history_router
-from src.api.routes_crud import router as crud_router # Importa o roteador CRUD
+# Evento de startup para criar as tabelas do banco de dados
+@app.on_event("startup")
+async def startup_event():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print("INFO: Database tables created/checked.")
+
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Veritas API - Combatting Disinformation!"}
 
 # Inclui os roteadores no aplicativo FastAPI.
-# Os prefixos são definidos DENTRO de cada APIRouter nos arquivos de rotas,
-# então aqui apenas os incluímos.
-app.include_router(crud_router)     # Endpoint: /analysis/...
-app.include_router(analyze_router)  # Endpoint: /analyze/... (Este é o da LLM)
-app.include_router(status_router)   # Endpoint: /status/...
-app.include_router(feedback_router) # Endpoint: /feedback/...
-app.include_router(history_router)  # Endpoint: /history/...
+app.include_router(crud_router)
+app.include_router(analyze_router)
+app.include_router(status_router)
+app.include_router(feedback_router)
+app.include_router(history_router)
+app.include_router(auth_router) # Inclui as rotas de autenticação
+
 
 # Exemplo de uma função (fora do contexto da API) que poderia analisar uma URL.
-# Esta função não está ligada a nenhum endpoint HTTP diretamente.
 def analisar_url(url: str):
     """
     Função (a ser implementada) que analisa a URL fornecida
@@ -45,5 +58,4 @@ def analisar_url(url: str):
 
 if __name__ == "__main__":
     import uvicorn
-    # Executa o aplicativo FastAPI usando Uvicorn
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)

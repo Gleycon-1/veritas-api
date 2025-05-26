@@ -1,4 +1,4 @@
-# src/api/routes_analyze.py
+ # src/api/routes_analyze.py
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field
@@ -11,7 +11,9 @@ from src.core.llm_integration import analyze_content_with_llm
 # Importa as operações CRUD para salvar o resultado da análise
 from src.db import crud_operations
 from src.db.database import get_db
-from src.models.analysis import AnalysisCreate, Analysis # Importa os schemas de Pydantic
+from src.models.analysis import AnalysisCreate # Importa os schemas de Pydantic
+from src.models.user import User # Importa o modelo de usuário
+from src.core.users import current_active_user # Importa a dependência de usuário ativo
 
 # Define o APIRouter com um prefixo e tags para organizar no Swagger UI
 router = APIRouter(
@@ -24,7 +26,7 @@ router = APIRouter(
 class AnalyzeRequest(BaseModel):
     content: str = Field(..., description="O conteúdo textual a ser analisado.")
     # Permite escolher qual LLM usar, com Gemini como padrão
-    preferred_llm: Optional[str] = Field("gemini", description="LLM preferencial para análise (gemini ou openai).")
+    preferred_llm: Optional[str] = Field("gemini", description="LLM preferencial para análise (gemini, openai ou huggingface).")
 
 class AnalyzeResponse(BaseModel):
     id: str
@@ -34,7 +36,6 @@ class AnalyzeResponse(BaseModel):
     sources: Optional[List[str]] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
-    # Novo campo para a cor da classificação
     color: str = Field(..., description="Cor associada à classificação (ex: '🟢', '🔴', '⚪', '🔵').")
     message: Optional[str] = Field(None, description="Mensagem ou justificativa da análise pelo LLM.")
 
@@ -63,11 +64,12 @@ def get_color_from_classification(classification: str) -> str:
 @router.post("/", response_model=AnalyzeResponse, status_code=status.HTTP_201_CREATED)
 async def analyze_content_endpoint(
     request_data: AnalyzeRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(current_active_user) # <-- AQUI: Adiciona a dependência de autenticação
 ):
     """
     Analisa um conteúdo textual usando um modelo de linguagem (LLM)
-    e armazena o resultado no banco de dados.
+    e armazena o resultado no banco de dados. Este endpoint requer autenticação.
     """
     content = request_data.content
     preferred_llm = request_data.preferred_llm
@@ -99,6 +101,7 @@ async def analyze_content_endpoint(
 
     # 4. Salvar a análise no banco de dados
     try:
+        # Você pode considerar adicionar o user.id aqui se quiser vincular a análise ao usuário
         db_analysis = crud_operations.create_analysis(db=db, analysis_data=analysis_create_data)
         print(f"DEBUG: Análise salva no BD com ID: {db_analysis.id}")
     except Exception as e:
@@ -107,7 +110,7 @@ async def analyze_content_endpoint(
 
     # 5. Construir a resposta final
     response_data = AnalyzeResponse(
-        id=db_analysis.id,
+        id=str(db_analysis.id), # Garante que o ID seja uma string
         content=db_analysis.content,
         classification=db_analysis.classification,
         status=db_analysis.status,

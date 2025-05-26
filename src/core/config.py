@@ -1,3 +1,5 @@
+# src/core/config.py
+
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,6 +17,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY", "")
     HUGGINGFACE_MODEL_ID: str = os.getenv("HUGGINGFACE_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.2") # ID padrão para o modelo HF
+
+    # **NOVA LINHA:** Configuração da SECRET_KEY para JWT
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
 
     # Configuração do banco de dados
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./veritas.db") # Padrão para SQLite local
