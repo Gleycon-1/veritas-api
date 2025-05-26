@@ -4,8 +4,9 @@ from fastapi import APIRouter
 from src.core.users import fastapi_users
 from src.core.auth import auth_backend
 
-# Importa os schemas de usuário que acabamos de criar
-from src.models.user_schemas import UserRead, UserCreate, UserUpdate # Adicionado
+# Importa os schemas de usuário da NOVA pasta 'schemas'
+from src.schemas.user_schemas import UserRead, UserCreate, UserUpdate # <<-- CORRIGIDO AQUI!
+
 
 router = APIRouter()
 
