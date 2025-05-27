@@ -1,42 +1,55 @@
 # src/core/users.py
 
+from fastapi import Depends
+from fastapi_users import FastAPIUsers, BaseUserManager, exceptions, models, schemas
+
 from typing import Optional
-from fastapi import Depends, Request
-# MUDANÇA AQUI: Tentar importar BaseUserManager diretamente de fastapi_users
-from fastapi_users import BaseUserManager, FastAPIUsers # <<< BaseUserManager AQUI!
-from fastapi_users.schemas import BaseUser # BaseUser vem de schemas
 
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase as SQLAlchemyUserDatabaseActual
+from src.models.user import User, get_user_db # Importa seu modelo de usuário e a dependência de banco de dados
+from src.core.auth import auth_backend # Importa o backend de autenticação
 
-from src.models.user import User, get_user_db
-from src.core.auth import auth_backend
+# Importa os schemas de usuário para o UserManager
+from src.schemas.user_schemas import UserRead, UserCreate, UserUpdate
 
-# UserManager personalizado que herda de BaseUserManager
-# Ele herda de BaseUserManager[User, int] porque nosso User tem ID int
-class CustomUserManager(BaseUserManager[User, int]): # <<< MUDANÇA AQUI: Herdar de BaseUserManager
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
+# Define um UserManager customizado
+class UserManager(BaseUserManager[User, int]):
+    # Se precisar enviar emails de verificação/reset, configure aqui
+    # reset_password_token_secret = SECRET
+    # verification_token_secret = SECRET
+
+    async def on_after_register(self, user: User, request: Optional[dict] = None):
         print(f"User {user.id} has registered.")
 
     async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
+        self, user: User, token: str, request: Optional[dict] = None
     ):
         print(f"User {user.id} has forgot their password. Reset token: {token}")
 
     async def on_after_request_verify(
-        self, user: User, token: str, request: Optional[Request] = None
+        self, user: User, token: str, request: Optional[dict] = None
     ):
         print(f"Verification requested for user {user.id}. Verification token: {token}")
 
-# Dependência para obter o User Manager
-async def get_user_manager(user_db: SQLAlchemyUserDatabaseActual = Depends(get_user_db)):
-    # O CustomUserManager cuidará do hashing da senha automaticamente
-    yield CustomUserManager(user_db)
+    # ESSENCIAL: Implementar parse_id para FastAPI-Users 11+
+    # Ele converte o ID do token (string) para o tipo do seu ID de usuário (int)
+    def parse_id(self, s: str) -> models.ID:
+        try:
+            return int(s)
+        except ValueError:
+            raise exceptions.InvalidIDException()
 
 
-# Instanciação do FastAPIUsers
+# Dependência para obter a instância do UserManager
+async def get_user_manager(user_db=Depends(get_user_db)):
+    yield UserManager(user_db)
+
+
+# Inicializa a instância do FastAPIUsers
 fastapi_users = FastAPIUsers[User, int](
-    get_user_manager, # Agora passamos a dependência do CustomUserManager
+    get_user_manager, # <-- Use a nova dependência do UserManager
     [auth_backend],
 )
 
+# Função de dependência para pegar o usuário ativo
+# Isso já estava lá, mas é bom ter o contexto
 current_active_user = fastapi_users.current_user(active=True)

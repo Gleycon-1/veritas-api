@@ -2,18 +2,19 @@
 
 from fastapi_users.authentication import (
     AuthenticationBackend,
-    BearerTransport,  # <-- CORREÇÃO AQUI: Importação direta de BearerTransport
+    BearerTransport,
     JWTStrategy,
 )
 
-from src.core.config import settings
+from src.core.config import settings # Supondo que suas chaves estão em settings.py
 
 # A SECRET_KEY é carregada das suas configurações (settings.py que lê o .env)
 SECRET = settings.SECRET_KEY
 
 # Define o transporte para o token JWT
-# BearerTransport agora é importado diretamente de fastapi_users.authentication
-bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+# CORREÇÃO AQUI: tokenUrl deve corresponder ao caminho real do endpoint de login
+# (que é /jwt/login, pois o auth_router tem prefixo "/jwt" e o get_auth_router define "/login")
+bearer_transport = BearerTransport(tokenUrl="/jwt/login")
 
 # Define a estratégia JWT
 # O tempo de expiração do token (lifetime_seconds) pode ser ajustado

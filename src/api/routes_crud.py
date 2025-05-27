@@ -1,78 +1,60 @@
 # src/api/routes_crud.py
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession # Importa a sessão assíncrona
+from typing import List
 
-from src.db.database import get_db
-from src.db import crud_operations
-from src.models.analysis import Analysis, AnalysisCreate, AnalysisUpdateStatus
-from pydantic import BaseModel, Field
+from src.db.database import get_db # get_db fornece AsyncSession
+from src.db import crud_operations # Importa o módulo crud_operations
+from src.models.analysis import AnalysisCreate, AnalyzeResponse # Importa o schema Pydantic para criação e resposta
+from src.core.tasks import analyze_content_task, get_color_from_classification # Importa a tarefa Celery e a função de cor
+from celery.result import AsyncResult # Para verificar o status da tarefa Celery
+from uuid import UUID # Para validar UUIDs
 
-# Define o APIRouter com um prefixo e tags para organizar no Swagger UI
 router = APIRouter(
-    prefix="/analysis",  # Todos os endpoints aqui terão /analysis antes
-    tags=["Analysis CRUD Operations"] # Tag para agrupar no Swagger UI
+    prefix="/analyses", # Um prefixo mais genérico para operações CRUD
+    tags=["Analysis CRUD"]
 )
 
-# Schema para resposta de delete
-class DeleteResponse(BaseModel):
-    detail: str = Field("Analysis deleted successfully", description="Mensagem de confirmação da exclusão.")
+@router.post("/", response_model=AnalyzeResponse, status_code=status.HTTP_201_CREATED)
+async def create_analysis_endpoint(
+    analysis_data: AnalysisCreate, 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Cria uma nova análise e a envia para processamento assíncrono.
+    Retorna os detalhes da análise criada.
+    """
+    # Cria a análise no banco de dados (o ID será gerado no crud_operations)
+    db_analysis = await crud_operations.create_analysis(db, analysis_data)
+    
+    # Envia a tarefa para o Celery
+    # Passamos o ID da análise para a tarefa Celery para que ela possa atualizar o status no DB
+    task = analyze_content_task.delay(str(db_analysis.id), db_analysis.content) # Assumindo que task espera ID e content
+
+    # Prepara a resposta Pydantic, adicionando o campo 'color'
+    analysis_response_data = db_analysis.__dict__
+    analysis_response_data["color"] = get_color_from_classification(db_analysis.classification) # 'pending' por padrão
+    
+    return AnalyzeResponse(**analysis_response_data)
 
 
-@router.post("/", response_model=Analysis, status_code=status.HTTP_201_CREATED)
-def create_analysis_endpoint(payload: AnalysisCreate, db: Session = Depends(get_db)):
+@router.get("/{analysis_id}", response_model=AnalyzeResponse)
+async def get_analysis_details_endpoint(analysis_id: UUID, db: AsyncSession = Depends(get_db)):
     """
-    Cria uma nova análise no sistema.
+    Obtém os detalhes de uma análise específica.
     """
-    print(f"DEBUG: Recebida solicitação POST /analysis com payload: {payload.dict()}")
-    try:
-        new_analysis = crud_operations.create_analysis(db=db, analysis_data=payload)
-        print(f"DEBUG: Análise criada com sucesso: {new_analysis.id}")
-        return new_analysis
-    except Exception as e:
-        print(f"ERRO: Falha ao criar análise: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Falha ao criar análise: {e}")
-
-
-@router.get("/{analysis_id}", response_model=Analysis)
-def get_analysis_by_id_endpoint(analysis_id: str, db: Session = Depends(get_db)):
-    """
-    Retorna uma análise específica pelo seu ID.
-    """
-    print(f"DEBUG: Recebida solicitação GET /analysis/{analysis_id}")
-    analysis = crud_operations.get_analysis_by_id(db, analysis_id)
+    # Converte o UUID para string para a função CRUD se ela espera string
+    analysis_id_str = str(analysis_id)
+    analysis = await crud_operations.get_analysis_by_id(db, analysis_id_str)
+    
     if not analysis:
-        print(f"DEBUG: Análise com ID {analysis_id} não encontrada.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis not found")
-    print(f"DEBUG: Análise com ID {analysis_id} encontrada.")
-    return analysis
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Análise não encontrada.")
 
+    analysis_data = analysis.__dict__
+    analysis_data["color"] = get_color_from_classification(analysis.classification)
+    
+    return AnalyzeResponse(**analysis_data)
 
-@router.put("/{analysis_id}/status", response_model=Analysis)
-def update_status_endpoint(analysis_id: str, payload: AnalysisUpdateStatus, db: Session = Depends(get_db)):
-    """
-    Atualiza o status de uma análise existente.
-    """
-    print(f"DEBUG: Recebida solicitação PUT /analysis/{analysis_id}/status com novo status: {payload.new_status}")
-    updated_analysis = crud_operations.update_analysis_status(db, analysis_id, payload.new_status)
-    if not updated_analysis:
-        print(f"DEBUG: Análise com ID {analysis_id} não encontrada para atualização.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis not found")
-    print(f"DEBUG: Status da análise {analysis_id} atualizado para {payload.new_status}.")
-    return updated_analysis
-
-
-@router.delete("/{analysis_id}", response_model=DeleteResponse)
-def delete_analysis_endpoint(analysis_id: str, db: Session = Depends(get_db)):
-    """
-    Deleta uma análise do sistema pelo seu ID.
-    """
-    print(f"DEBUG: Recebida solicitação DELETE /analysis/{analysis_id}")
-    deleted = crud_operations.delete_analysis(db, analysis_id)
-    if not deleted:
-        print(f"DEBUG: Análise com ID {analysis_id} não encontrada para exclusão.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis not found")
-    print(f"DEBUG: Análise com ID {analysis_id} deletada com sucesso.")
-    return {"detail": "Analysis deleted successfully"}
+# Você pode adicionar outras rotas CRUD aqui (PUT para update, DELETE para delete)
+# Lembre-se de usar AnalyzeResponse como response_model e de tornar as funções assíncronas.
