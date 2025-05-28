@@ -2,10 +2,12 @@ import asyncio
 from celery import Celery
 from .config import settings
 from .llm_integration import analyze_content_with_llm
-from src.db import crud as crud_operations
+from src.db import crud_operations as crud_operations
 from ..db.database import get_db_session_sync
 from typing import Optional, List
 import os
+
+print("DEBUG_TASK: src/core/tasks.py está sendo carregado!")
 
 # Configuração do Celery
 celery_app = Celery(

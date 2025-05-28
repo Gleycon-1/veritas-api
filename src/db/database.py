@@ -6,6 +6,8 @@ from typing import AsyncGenerator, Generator
 
 DATABASE_URL = settings.DATABASE_URL # Esta linha agora pegará "sqlite+aiosqlite:///./test.db" do settings
 
+
+
 Base = declarative_base()
 
 # Motor para operações assíncronas (para FastAPI)

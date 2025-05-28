@@ -1,18 +1,29 @@
-FastAPI
-uvicorn
-pydantic
-httpx
-beautifulsoup4
-requests
-motor  # For MongoDB
-psycopg2-binary  # For PostgreSQL
-openai  # For OpenAI API integration
-pytest  # For testing
-pytest-asyncio  # For async testing
-flask  # If Flask is chosen instead of FastAPI
+fastapi
+uvicorn[standard]
+sqlalchemy
+aiosqlite # Para SQLite
+# psycopg2-binary # Descomente se for usar PostgreSQL
+# motor # Descomente se for usar MongoDB
 
-openai
+celery[eventlet]
+redis
+eventlet # ADICIONADO PARA GARANTIR A INSTALAÇÃO
+greenlet # ADICIONADO PARA GARANTIR A INSTALAÇÃO
+
+pydantic-settings
+fastapi-users[sqlalchemy]
 python-dotenv
+python-multipart # Necessário para upload de arquivos, se houver
+httpx # Para requisições HTTP assíncronas (FastAPI usa implicitamente)
+beautifulsoup4 # Para parsing de HTML/XML, se precisar
+requests # Para requisições HTTP síncronas, se precisar (httpx é o assíncrono)
 
-pip install openai python-dotenv
+# Bibliotecas de LLM - DESCOMENTE APENAS AS QUE VOCÊ USA
+openai              # Para OpenAI API
+google-generativeai # Para Gemini API
+huggingface_hub     # Para integrar com Hugging Face (e talvez transformers)
+# transformers # Descomente se for usar modelos do Hugging Face localmente ou de forma mais profunda
 
+# Ferramentas de Teste - Descomente se precisar testar
+pytest
+pytest-asyncio
