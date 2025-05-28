@@ -1,13 +1,12 @@
-# src/db/crud_operations.py
-
-from sqlalchemy.ext.asyncio import AsyncSession # Importa AsyncSession para operações assíncronas
-from sqlalchemy import select # Importa select para construir queries assíncronas
-from src.db.models import AnalysisModel # Assumindo que seu modelo SQLAlchemy AnalysisModel está aqui
-from src.models import analysis as schemas # Importa os schemas Pydantic
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import Session as SyncSession # Para o Celery (se usado em tarefas síncronas)
+from src.db.models import AnalysisModel
+from src.schemas.analysis_schemas import AnalysisCreate
 from datetime import datetime
 import json
 from typing import Optional, List
-from uuid import uuid4 # Importar uuid4 para gerar IDs se necessário
+from uuid import uuid4
 
 # --- Funções CRUD para o modelo Analysis ---
 
@@ -19,7 +18,6 @@ async def get_analysis_by_id(db: AsyncSession, analysis_id: str):
     db_analysis = result.scalar_one_or_none()
     
     if db_analysis and db_analysis.sources:
-        # Deserializa a string JSON de 'sources' de volta para uma lista
         try:
             db_analysis.sources = json.loads(db_analysis.sources)
         except json.JSONDecodeError:
@@ -31,9 +29,8 @@ async def get_all_analyses(db: AsyncSession):
     Busca todas as análises no banco de dados (assíncrona).
     """
     result = await db.execute(select(AnalysisModel))
-    db_analyses = result.scalars().all() # .scalars().all() para obter uma lista de objetos
+    db_analyses = result.scalars().all()
     
-    # Deserializa as fontes para cada análise na lista
     for analysis in db_analyses:
         if analysis.sources:
             try:
@@ -43,31 +40,28 @@ async def get_all_analyses(db: AsyncSession):
     return db_analyses
 
 
-async def create_analysis(db: AsyncSession, analysis_data: schemas.AnalysisCreate):
+async def create_analysis(db: AsyncSession, analysis_data: AnalysisCreate):
     """
     Cria uma nova entrada de análise no banco de dados (assíncrona).
     """
-    # Garante que o ID seja uma string e que um novo UUID seja gerado se não fornecido
-    analysis_id_str = str(analysis_data.id) if analysis_data.id else str(uuid4())
+    analysis_id_str = str(uuid4()) # Sempre gera um novo UUID
 
-    # Serializa a lista de 'sources' para uma string JSON antes de salvar
     sources_json = json.dumps(analysis_data.sources if analysis_data.sources is not None else [])
 
     db_analysis = AnalysisModel(
         id=analysis_id_str,
         content=analysis_data.content,
-        classification=analysis_data.classification,
-        status=analysis_data.status,
+        classification="pending",
+        status="pending",
         sources=sources_json,
-        message=analysis_data.message,
+        message=None,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()
     )
     db.add(db_analysis)
-    await db.commit() # await para commit assíncrono
-    await db.refresh(db_analysis) # await para refresh assíncrono
+    await db.commit()
+    await db.refresh(db_analysis)
 
-    # Deserializa 'sources' de volta para lista para o objeto retornado (consistência com Pydantic)
     if db_analysis.sources:
         try:
             db_analysis.sources = json.loads(db_analysis.sources)
@@ -75,61 +69,80 @@ async def create_analysis(db: AsyncSession, analysis_data: schemas.AnalysisCreat
             db_analysis.sources = []
     return db_analysis
 
+# --- Funções para serem usadas pelo Celery (síncronas com SyncSession) ---
 
-async def update_analysis_details(
-    db: AsyncSession,
+def update_analysis_details(
+    db: SyncSession,
     analysis_id: str,
     classification: str,
     status: str,
     sources: List[str],
     message: Optional[str] = None
-):
-    """
-    Atualiza todos os detalhes de uma análise existente (assíncrona).
-    """
-    result = await db.execute(select(AnalysisModel).filter(AnalysisModel.id == analysis_id))
-    analysis = result.scalar_one_or_none()
+) -> Optional[AnalysisModel]: # Adicionei tipo de retorno para clareza
+    try:
+        # Use o método síncrono para buscar o registro
+        analysis = db.query(AnalysisModel).filter(AnalysisModel.id == analysis_id).first()
 
-    if analysis:
-        analysis.classification = classification
-        analysis.status = status
-        analysis.sources = json.dumps(sources)
-        analysis.message = message
-        analysis.updated_at = datetime.utcnow()
-        await db.commit() # await para commit assíncrono
-        await db.refresh(analysis) # await para refresh assíncrono
-        
-        # Deserializa 'sources' antes de retornar para consistência
-        if analysis.sources:
-            try:
-                analysis.sources = json.loads(analysis.sources)
-            except json.JSONDecodeError:
-                analysis.sources = []
-        return analysis
-    print(f"DEBUG: update_analysis_details - Análise com ID {analysis_id} não encontrada.")
-    return None
+        if analysis:
+            analysis.classification = classification
+            analysis.status = status
+            analysis.sources = json.dumps(sources) # Garante que está serializado
+            analysis.message = message
+            analysis.updated_at = datetime.utcnow()
+            
+            db.add(analysis) # Marca o objeto como modificado
+            db.commit() # <--- ESSENCIAL: Persiste as mudanças no DB
+            db.refresh(analysis) # Recarrega o objeto com os dados atualizados do DB
 
-async def update_analysis_status(db: AsyncSession, analysis_id: str, status: str, message: Optional[str] = None):
-    """
-    Atualiza o status e opcionalmente a mensagem de uma análise existente (assíncrona).
-    """
-    result = await db.execute(select(AnalysisModel).filter(AnalysisModel.id == analysis_id))
-    analysis_to_update = result.scalar_one_or_none()
+            # Deserializa 'sources' antes de retornar para consistência
+            if analysis.sources:
+                try:
+                    analysis.sources = json.loads(analysis.sources)
+                except json.JSONDecodeError:
+                    analysis.sources = []
+            return analysis
+        else:
+            print(f"DEBUG: update_analysis_details - Análise com ID {analysis_id} não encontrada para atualização.")
+            return None
+    except Exception as e:
+        db.rollback() # Em caso de erro, desfaça a transação
+        print(f"ERRO: update_analysis_details - Falha ao atualizar análise {analysis_id}: {e}")
+        return None
 
-    if analysis_to_update:
-        analysis_to_update.status = status
-        analysis_to_update.message = message if message is not None else analysis_to_update.message
-        analysis_to_update.updated_at = datetime.utcnow()
-        await db.commit() # await para commit assíncrono
-        await db.refresh(analysis_to_update) # await para refresh assíncrono
+def update_analysis_status(
+    db: SyncSession,
+    analysis_id: str,
+    status: str,
+    message: Optional[str] = None
+) -> Optional[AnalysisModel]:
+    try:
+        analysis_to_update = db.query(AnalysisModel).filter(AnalysisModel.id == analysis_id).first()
 
-        # Deserializa 'sources' antes de retornar para consistência com o schema Pydantic
-        if analysis_to_update.sources:
-            try:
-                analysis_to_update.sources = json.loads(analysis_to_update.sources)
-            except json.JSONDecodeError:
-                analysis_to_update.sources = []
-    return analysis_to_update
+        if analysis_to_update:
+            analysis_to_update.status = status
+            # Atualiza a mensagem apenas se uma nova for fornecida
+            if message is not None:
+                analysis_to_update.message = message
+            analysis_to_update.updated_at = datetime.utcnow()
+            
+            db.add(analysis_to_update) # Marca o objeto como modificado
+            db.commit() # <--- ESSENCIAL: Persiste as mudanças no DB
+            db.refresh(analysis_to_update) # Recarrega o objeto com os dados atualizados do DB
+
+            # Deserializa 'sources' antes de retornar para consistência com o schema Pydantic
+            if analysis_to_update.sources:
+                try:
+                    analysis_to_update.sources = json.loads(analysis_to_update.sources)
+                except json.JSONDecodeError:
+                    analysis_to_update.sources = []
+            return analysis_to_update
+        else:
+            print(f"DEBUG: update_analysis_status - Análise com ID {analysis_id} não encontrada para atualização de status.")
+            return None
+    except Exception as e:
+        db.rollback() # Em caso de erro, desfaça a transação
+        print(f"ERRO: update_analysis_status - Falha ao atualizar status de análise {analysis_id}: {e}")
+        return None
 
 async def delete_analysis(db: AsyncSession, analysis_id: str):
     """
@@ -139,6 +152,6 @@ async def delete_analysis(db: AsyncSession, analysis_id: str):
     db_analysis = result.scalar_one_or_none()
 
     if db_analysis:
-        await db.delete(db_analysis) # await para delete assíncrono
-        await db.commit() # await para commit assíncrono
+        await db.delete(db_analysis)
+        await db.commit()
     return db_analysis

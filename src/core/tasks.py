@@ -1,59 +1,51 @@
-# src/core/tasks.py
-
 import asyncio
-from src.core.celery_app import celery_app
-from src.core.llm_integration import analyze_content_with_llm
-from src.db import crud_operations
-from src.db.database import get_db_session_sync # Importar uma função para obter sessão SQLAlchemy síncrona
-from datetime import datetime
-from typing import List, Optional
+from celery import Celery
+from .config import settings
+from .llm_integration import analyze_content_with_llm
+from src.db import crud as crud_operations
+from ..db.database import get_db_session_sync
+from typing import Optional, List
+import os
 
-# NOTA: O Celery worker roda em um processo separado e não pode usar dependências assíncronas do FastAPI (Depends).
-# Precisamos de uma maneira de obter uma sessão de BD síncrona dentro da tarefa Celery.
+# Configuração do Celery
+celery_app = Celery(
+    "veritas_tasks",
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND
+)
 
-# --- Função Auxiliar para Mapear Classificação para Cor (Copiada de routes_analyze.py) ---
+celery_app.conf.update(
+    task_track_started=True,
+    broker_connection_retry_on_startup=True,
+    timezone='UTC',
+    enable_utc=True,
+)
+
 def get_color_from_classification(classification: str) -> str:
-    """
-    Mapeia a classificação do LLM para um emoji de cor.
-    """
     lower_classification = classification.lower()
     if "fake_news" in lower_classification or "noticia_falsa" in lower_classification or "desinformacao" in lower_classification:
-        return "🔴" # Vermelho para fake news
+        return "🔴"
     elif "verdadeiro" in lower_classification or "fato" in lower_classification or "confirmado" in lower_classification:
-        return "🟢" # Verde para verdadeiro
+        return "🟢"
     elif "sátira" in lower_classification or "humor" in lower_classification or "ficcao" in lower_classification:
-        return "⚪" # Branco/Cinzento para sátira
+        return "⚪"
     elif "opinião" in lower_classification or "editorial" in lower_classification or "perspectiva" in lower_classification:
-        return "🔵" # Azul para opinião
+        return "🔵"
     elif "parcial" in lower_classification or "tendencioso" in lower_classification:
-        return "🟠" # Laranja para parcial
+        return "🟠"
     else:
-        return "⚫" # Preto para indefinido/erro
+        return "⚫"
 
-# --- Tarefa Celery para Análise ---
-@celery_app.task(bind=True) # `bind=True` permite acessar `self` (a instância da tarefa)
+@celery_app.task(name="src.core.tasks.analyze_content_task", bind=True)
 def analyze_content_task(self, analysis_id: str, content: str, preferred_llm: str):
-    # A tarefa Celery é síncrona por padrão.
-    # Se analyze_content_with_llm for assíncrona, precisamos executá-la dentro de um loop de eventos asyncio.
-    loop = asyncio.get_event_loop()
-    if loop.is_running(): # Se já há um loop rodando (ex: em ambientes de teste), crie uma nova tarefa
-        task = loop.create_task(_run_analysis_logic(analysis_id, content, preferred_llm))
-        loop.run_until_complete(task)
-    else: # Caso contrário, crie um novo loop (comum em workers Celery)
-        loop.run_until_complete(_run_analysis_logic(analysis_id, content, preferred_llm))
+    asyncio.run(_run_analysis_logic(analysis_id, content, preferred_llm))
+
 
 async def _run_analysis_logic(analysis_id: str, content: str, preferred_llm: str):
-    """
-    Lógica de análise real que será executada pela tarefa Celery.
-    Isolada para poder ser chamada de forma assíncrona.
-    """
-    # A tarefa Celery não tem acesso direto às dependências do FastAPI (como get_db)
-    # Precisamos obter uma sessão de BD síncrona aqui.
     db = None
     try:
-        # Pega uma sessão do banco de dados síncrona.
-        # Precisamos de um get_db_session_sync em src/db/database.py
-        db = next(get_db_session_sync()) # Obtém a sessão do gerador
+        db_generator = get_db_session_sync()
+        db = next(db_generator)
 
         print(f"INFO: [Celery Task] Iniciando análise para ID: {analysis_id} com {preferred_llm}.")
         llm_result = {}
@@ -68,26 +60,25 @@ async def _run_analysis_logic(analysis_id: str, content: str, preferred_llm: str
         message = llm_result.get("message", "Nenhuma justificativa fornecida pela LLM ou erro na análise.")
         sources = llm_result.get("sources", ["LLM_analysis"])
 
-        # Atualizar a análise no banco de dados
-        updated_analysis = crud_operations.update_analysis_details(
+        # Chamar as funções usando o alias
+        updated_analysis = crud_operations.update_analysis_details( # MUDANÇA AQUI
             db=db,
             analysis_id=analysis_id,
             classification=classification,
-            status="completed" if classification != "error" else "failed",
+            status="completed" if classification.lower() != "error" else "failed",
             sources=sources,
             message=message
         )
         if not updated_analysis:
-            print(f"ERRO: [Celery Task] Análise com ID {analysis_id} não encontrada para atualização.")
+            print(f"ERRO: [Celery Task] Análise com ID {analysis_id} não encontrada ou falha na atualização (crud.py).")
 
         print(f"INFO: [Celery Task] Análise para ID: {analysis_id} concluída e BD atualizado.")
 
     except Exception as e:
         print(f"ERRO: [Celery Task] Falha crítica na análise de fundo para ID {analysis_id}: {e}")
-        # Tentar atualizar o status para 'failed' mesmo em caso de erro crítico
         if db:
             try:
-                crud_operations.update_analysis_status(
+                crud_operations.update_analysis_status( # MUDANÇA AQUI
                     db=db,
                     analysis_id=analysis_id,
                     status="failed",
@@ -97,4 +88,4 @@ async def _run_analysis_logic(analysis_id: str, content: str, preferred_llm: str
                 print(f"ERRO: [Celery Task] Falha ao atualizar status para 'failed' para ID {analysis_id}: {update_e}")
     finally:
         if db:
-            db.close() # Fechar a sessão do banco de dados no final da tarefa
+            db.close()
