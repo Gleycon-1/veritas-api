@@ -1,12 +1,16 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os # Importar os para acessar variáveis de ambiente diretamente se necessário para depuração
 
+from typing import Optional # Adicione esta importação
+
 class Settings(BaseSettings):
-    # Suas chaves de API LLM
-    GEMINI_API_KEY: str
-    OPENAI_API_KEY: str | None = None
-    HUGGINGFACE_API_KEY: str | None = None
-    HUGGINGFACE_MODEL_ID: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    # ... outras configurações ...
+    OPENAI_API_KEY: Optional[str] = None # OU Optional[str] = ""
+    GEMINI_API_KEY: Optional[str] = None # OU Optional[str] = ""
+    HUGGINGFACE_API_KEY: str # Esta pode permanecer obrigatória se você sempre a usará
+    HUGGINGFACE_MODEL_ID: str = "HuggingFaceH4/zephyr-7b-beta"
+    # *** ADICIONE ESTAS LINHAS para as configurações de autenticação ***
+    JWT_ALGORITHM: str = "HS256" # Algoritmo de assinatura JWT  
 
     SECRET_KEY: str # Chave secreta para JWT
 

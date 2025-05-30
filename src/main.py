@@ -11,16 +11,31 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.api.routes_analyze import router as analyze_router
 from src.api.routes_status import router as status_router
 from src.api.routes_feedback import router as feedback_router
-from src.api.routes_history import router as history_router
+from src.api.routes_history import router as router_history # Alterei para evitar conflito com 'history_router' abaixo
 from src.api.routes_crud import router as crud_router
-from src.api.routes_auth import router as auth_router 
+from src.api.routes_auth import router as auth_router
 
 # IMPORTANTE: Importa o Base, engine, AsyncSessionLocal E create_db_and_tables
 # do seu arquivo database.py. create_db_and_tables é a função que garante a criação das tabelas.
-from src.db.database import Base, engine, AsyncSessionLocal, create_db_and_tables 
+from src.db.database import Base, engine, AsyncSessionLocal, create_db_and_tables
 
 # Importa as configurações da API (onde você define o modelo da LLM)
 from src.core.config import settings
+
+# --- NOVIDADE: Importação e Configuração do Celery ---
+from celery import Celery
+
+# Instância do Celery
+# O nome 'veritas_app' é o nome da sua aplicação Celery.
+# O 'broker' e 'backend' são lidos das suas settings (do .env).
+# 'include' especifica quais módulos contêm as tarefas do Celery (src.core.tasks).
+celery_app = Celery(
+    "veritas_app",
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
+    include=["src.core.tasks"] # Certifique-se de que src.core.tasks é o caminho correto para suas tarefas
+)
+# --- FIM NOVIDADE CELERY ---
 
 # --- Context Manager para o ciclo de vida da aplicação ---
 # Esta é a ÚNICA definição de lifespan que deve existir.
@@ -29,7 +44,7 @@ async def lifespan(app: FastAPI):
     print("INFO: Criando tabelas do banco de dados...")
     try:
         # Chama a função que contém a lógica de criação de tabelas
-        await create_db_and_tables() 
+        await create_db_and_tables()
         print("INFO: Tabelas do banco de dados criadas ou já existentes.")
     except Exception as e:
         # Se ocorrer um erro na criação das tabelas, imprime o erro e re-lança a exceção
@@ -43,7 +58,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Veritas API",
     description="API para análise de conteúdo com múltiplas LLMs e verificação de fontes.",
-    version="0.1.0", 
+    version="0.1.0",
     lifespan=lifespan # Associa o lifespan definido acima à sua aplicação FastAPI
 )
 
@@ -62,7 +77,7 @@ app.include_router(crud_router)
 app.include_router(analyze_router)
 app.include_router(status_router)
 app.include_router(feedback_router)
-app.include_router(history_router)
+app.include_router(router_history) # Usei router_history aqui, verifique sua importação original
 app.include_router(auth_router)
 
 # O bloco if __name__ == "__main__": não é necessário com uvicorn src.main:app

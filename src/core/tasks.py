@@ -1,13 +1,14 @@
-import asyncio
+# src/core/tasks.py (DEVE CONTER ISSO)
+
 from celery import Celery
 from .config import settings
-from .llm_integration import analyze_content_with_llm
-from src.db import crud_operations as crud_operations
+from .llm_integration import analyze_content_sync
+from src.db.sync_crud_operations import update_analysis_details_sync, update_analysis_status_sync # <--- IMPORTAÇÃO CORRETA
 from ..db.database import get_db_session_sync
 from typing import Optional, List
 import os
 
-print("DEBUG_TASK: src/core/tasks.py está sendo carregado!")
+print("DEBUG_TASK: src/core.tasks.py está sendo carregado!")
 
 # Configuração do Celery
 celery_app = Celery(
@@ -40,10 +41,10 @@ def get_color_from_classification(classification: str) -> str:
 
 @celery_app.task(name="src.core.tasks.analyze_content_task", bind=True)
 def analyze_content_task(self, analysis_id: str, content: str, preferred_llm: str):
-    asyncio.run(_run_analysis_logic(analysis_id, content, preferred_llm))
+    _run_analysis_logic_sync(analysis_id, content, preferred_llm)
 
 
-async def _run_analysis_logic(analysis_id: str, content: str, preferred_llm: str):
+def _run_analysis_logic_sync(analysis_id: str, content: str, preferred_llm: str):
     db = None
     try:
         db_generator = get_db_session_sync()
@@ -52,8 +53,8 @@ async def _run_analysis_logic(analysis_id: str, content: str, preferred_llm: str
         print(f"INFO: [Celery Task] Iniciando análise para ID: {analysis_id} com {preferred_llm}.")
         llm_result = {}
         try:
-            llm_result = await analyze_content_with_llm(content, preferred_llm=preferred_llm)
-            print(f"DEBUG: [Celery Task] Resultado do LLM para ID {analysis_id}: {llm_result}")
+            llm_result = analyze_content_sync(content, preferred_llm=preferred_llm)
+            print(f"DEBUG: [Celery Task] Resultado BRUTO do LLM para ID {analysis_id}: {llm_result}")
         except Exception as e:
             print(f"ERRO: [Celery Task] Falha ao chamar LLM para ID {analysis_id}: {e}")
             llm_result = {"classification": "error", "message": f"Erro na análise da LLM: {e}"}
@@ -61,26 +62,28 @@ async def _run_analysis_logic(analysis_id: str, content: str, preferred_llm: str
         classification = llm_result.get("classification", "indefinido")
         message = llm_result.get("message", "Nenhuma justificativa fornecida pela LLM ou erro na análise.")
         sources = llm_result.get("sources", ["LLM_analysis"])
+        
+        color = get_color_from_classification(classification)
 
-        # Chamar as funções usando o alias
-        updated_analysis = crud_operations.update_analysis_details( # MUDANÇA AQUI
+        updated_analysis = update_analysis_details_sync( # <--- CHAMADA CORRETA
             db=db,
             analysis_id=analysis_id,
             classification=classification,
             status="completed" if classification.lower() != "error" else "failed",
             sources=sources,
-            message=message
+            message=message,
+            color=color
         )
         if not updated_analysis:
             print(f"ERRO: [Celery Task] Análise com ID {analysis_id} não encontrada ou falha na atualização (crud.py).")
-
-        print(f"INFO: [Celery Task] Análise para ID: {analysis_id} concluída e BD atualizado.")
+        else:
+            print(f"INFO: [Celery Task] Análise para ID: {analysis_id} concluída e BD atualizado com status '{updated_analysis.status}' e cor '{updated_analysis.color}'.")
 
     except Exception as e:
         print(f"ERRO: [Celery Task] Falha crítica na análise de fundo para ID {analysis_id}: {e}")
         if db:
             try:
-                crud_operations.update_analysis_status( # MUDANÇA AQUI
+                update_analysis_status_sync( # <--- CHAMADA CORRETA
                     db=db,
                     analysis_id=analysis_id,
                     status="failed",

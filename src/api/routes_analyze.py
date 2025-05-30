@@ -1,48 +1,33 @@
-# src/api/routes_status.py
+# src/api/routes_analyze.py
 
-from fastapi import APIRouter, HTTPException, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession # Importa AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.database import get_db
-from src.db import crud_operations # Mantém esta importação, pois você tem crud_operations.py
-from src.core.users import current_active_user
-from src.models.user import User # Assumindo que o modelo User está aqui
-from src.schemas.analysis_schemas import AnalyzeResponse # CORREÇÃO AQUI: Importa do schemas
-from src.core.tasks import get_color_from_classification # Importa a função auxiliar de cor
+from src.schemas.analysis_schemas import AnalysisCreate, AnalyzeResponse # Correção para AnalyzeResponse
+from src.db.crud_operations import create_analysis
+from src.core.tasks import analyze_content_task
 
-# Define o APIRouter com um prefixo e tags
-router = APIRouter(
-    prefix="/analysis", # Prefixo mais descritivo
-    tags=["Analysis Status & Details"]
-)
+router = APIRouter()
 
-@router.get("/{analysis_id}", response_model=AnalyzeResponse)
-async def get_analysis_status(
-    analysis_id: str,
-    db: AsyncSession = Depends(get_db), # CORREÇÃO AQUI: Usa AsyncSession
-    user: User = Depends(current_active_user)
+@router.post("/analyses/", response_model=AnalyzeResponse, status_code=status.HTTP_202_ACCEPTED)
+async def create_new_analysis(
+    analysis_data: AnalysisCreate, db: AsyncSession = Depends(get_db)
 ):
-    """
-    Retorna o status e detalhes de uma análise específica.
-    Este endpoint requer autenticação.
-    """
-    # Busca a análise no banco de dados (AGORA COM AWAIT)
-    analysis = await crud_operations.get_analysis_by_id(db, analysis_id) # CORREÇÃO AQUI: Adiciona await
+    db_analysis = await create_analysis(db, analysis_data)
+    if not db_analysis:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Falha ao criar análise no banco de dados."
+        )
 
-    # Se a análise não for encontrada, retorna 404
-    if not analysis:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Análise não encontrada.")
-
-    # Converte o objeto do SQLAlchemy para o schema Pydantic AnalyzeResponse
-    # Mapeamos explicitamente os campos para garantir compatibilidade
-    response_data = AnalyzeResponse(
-        id=str(analysis.id), # Garante que o ID é uma string para o Pydantic
-        content=analysis.content,
-        classification=analysis.classification,
-        status=analysis.status,
-        sources=analysis.sources, # As fontes já devem vir deserializadas do crud_operations
-        created_at=analysis.created_at,
-        updated_at=analysis.updated_at,
-        color=get_color_from_classification(analysis.classification), # Calcula a cor com base na classificação
-        message=analysis.message
+    # --- PRINT DE DEPURACAO ADICIONADO AQUI ---
+    print(f"DEBUG_FASTAPI: Preferred LLM recebido no endpoint: '{analysis_data.preferred_llm}'")
+    # --- FIM PRINT DE DEPURACAO ---
+    
+    analyze_content_task.delay(
+        analysis_id=db_analysis.id,
+        content=db_analysis.content,
+        preferred_llm=analysis_data.preferred_llm # Passa o preferred_llm dinamicamente
     )
-    return response_data
+    
+    return db_analysis

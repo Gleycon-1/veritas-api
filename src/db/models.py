@@ -1,14 +1,15 @@
 # src/db/models.py
-from sqlalchemy import Column, String, Text, DateTime #, func, JSON
+
+from sqlalchemy import Column, String, Text, DateTime, func # Importado 'func' aqui
 from datetime import datetime
 import uuid
 
 # IMPORTANTE: Importe o 'Base' do seu arquivo database.py
 # Este 'Base' já está associado ao motor do banco de dados.
-from src.db.database import Base # <--- MUDANÇA CRÍTICA AQUI!
+from src.db.database import Base # <--- CORRETO!
 
 # Você pode remover a linha abaixo, pois Base será importado
-# Base = declarative_base() # <-- REMOVA ESTA LINHA!
+# Base = declarative_base() # <-- Remova esta linha se ainda estiver aí!
 
 class AnalysisModel(Base):
     __tablename__ = "analyses" # Nome da tabela no banco de dados
@@ -22,18 +23,14 @@ class AnalysisModel(Base):
     # sources será armazenado como Text (string JSON)
     sources = Column(Text, nullable=True) # Alterado para nullable=True caso não haja fontes
 
-    # AQUI ESTÁ A MUDANÇA: Adicionando a coluna 'message'
-    message = Column(Text, nullable=True) # Para armazenar mensagens/erros, pode ser nulo
+    # Coluna 'message'
+    message = Column(Text, nullable=True) # Para armazenar mensagens/justificativas, pode ser nulo
 
-    # Datas:
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
-    # onupdate=datetime.utcnow fará com que updated_at seja atualizado automaticamente
+    # Adicionando a coluna 'color'
+    color = Column(String, default="⚫", nullable=False) # <--- ADICIONADO!
+
+    # Datas: Usando func.now() para timestamps do banco de dados para maior precisão e consistência
+    created_at = Column(DateTime, default=func.now(), nullable=False) # <--- Sugestão: usar func.now()
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=True) # <--- Sugestão: usar func.now()
+    # onupdate=func.now() fará com que updated_at seja atualizado automaticamente
     # sempre que o registro for modificado.
-
-    # Se você quiser o func.now() do SQLAlchemy para carimbos de data/hora do banco de dados,
-    # Você precisaria importar 'func' e mudar as defaults:
-    # from sqlalchemy import func
-    # created_at = Column(DateTime, default=func.now(), nullable=False)
-    # updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=True)
-    # Para o teste, datetime.utcnow() deve funcionar, mas func.now() é geralmente preferido.

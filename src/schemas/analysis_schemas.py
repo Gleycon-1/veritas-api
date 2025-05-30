@@ -7,6 +7,7 @@ from typing import Optional, List
 class AnalysisCreate(BaseModel):
     content: str = Field(..., example="É verdade que comer chocolate ajuda na memória?")
     sources: Optional[List[str]] = Field([], example=["https://example.com/source1", "https://example.com/source2"])
+    preferred_llm: str = Field("huggingface", example="huggingface") # Adicionado novamente!
 
 # Schema para a resposta da API (o que a API retorna sobre uma análise)
 class AnalyzeResponse(BaseModel):
@@ -18,9 +19,7 @@ class AnalyzeResponse(BaseModel):
     message: Optional[str] = Field(None, example="A alegação é falsa baseada em x, y, z.")
     created_at: datetime
     updated_at: datetime
-    color: str = Field("⚫", example="🔴") # Adicionado para a cor visual na UI
+    color: str = Field("⚫", example="🔴")
 
     class Config:
-        # Isso permite que o Pydantic mapeie campos de modelos SQLAlchemy
-        # 'orm_mode' é para Pydantic v1, 'from_attributes' para Pydantic v2
         from_attributes = True
