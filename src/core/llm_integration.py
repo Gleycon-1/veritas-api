@@ -1,3 +1,5 @@
+# src/core/llm_integration.py
+
 from typing import Optional, Any, Dict
 import os
 import asyncio
@@ -68,16 +70,16 @@ async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") 
     - 'verdadeiro': O "Conteúdo a ser analisado" apresenta fatos verificáveis e precisos, baseados em evidências ou dados amplamente aceitos e confirmados (ex: dados históricos, geográficos, científicos consolidados).
     - 'sátira': O "Conteúdo a ser analisado" é humorístico, irônico, utiliza exagero ou paródia. Sua intenção NÃO é enganar, mas divertir ou criticar de forma cômica.
     - 'opinião': O "Conteúdo a ser analisado" expressa um ponto de vista pessoal, uma crença ou interpretação. Geralmente contém termos como 'eu acho', 'na minha opinião'. Ele se declara como subjetivo.
-    - 'parcial': O "Conteúdo a ser analisado" demonstra um viés claro, favorecendo ou desfavorecendo um lado, ideia ou grupo. Pode omitir informações relevantes do outro lado, usar linguagem carregada ou apresentar fatos de forma seletiva para influenciar o leitor, mas tentando parecer objetivo.
+    - 'tendencioso': O "Conteúdo a ser analisado" apresenta um viés claro, favorecendo ou desfavorecendo um lado, ideia ou grupo. Ele pode omitir informações relevantes do outro lado, usar linguagem carregada ou apresentar fatos de forma seletiva para tentar influenciar o leitor, mas tentando parecer objetivo ou neutro.
     - 'indefinido': O "Conteúdo a ser analisado" é ambíguo, carece de contexto, é sem sentido ou contém informações insuficientes para uma classificação clara em qualquer das outras categorias.
 
-    Sua resposta deve ser um objeto JSON contendo APENAS a 'classification' (uma das categorias acima) e uma 'message' (justificativa concisa de **por que o conteúdo se encaixa nessa classificação**, sem questionar ou adicionar informações externas).
+    Sua resposta deve ser um objeto JSON contendo APENAS a 'classification' (uma das categorias acima) e uma 'message' (justificativa detalhada em **português**, explicando os pontos que levaram a essa conclusão e fornecendo exemplos do texto ou contexto relevante, se aplicável). A justificativa deve ser informativa e clara.
 
     Exemplo de formato de resposta:
     ```json
     {{
         "classification": "verdadeiro",
-        "message": "O conteúdo é factual e amplamente verificável, informando sobre..."
+        "message": "O conteúdo é verdadeiro porque as informações sobre a população de São Paulo e sua posição no hemisfério sul são corroboradas por dados oficiais do Censo de 2022 do IBGE, que é uma fonte de dados demográficos amplamente reconhecida."
     }}
     ```
 
@@ -117,17 +119,24 @@ async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") 
                 if not settings.GEMINI_API_KEY: raise ValueError("Gemini API key not configured in .env.")
                 print("INFO: Tentando análise com Google Gemini...")
                 model = genai.GenerativeModel('gemini-1.5-flash')
+                
                 try:
-                    response = await model.generate_content_async(
-                        prompt,
-                        generation_config={"response_mime_type": "application/json"}
+                    response_object = await asyncio.get_running_loop().run_in_executor(
+                        executor,
+                        lambda: model.generate_content(
+                            prompt,
+                            generation_config={"response_mime_type": "application/json"}
+                        )
                     )
-                    response_text = response.text
+                    response_text = response_object.text
                     return json.loads(response_text)
                 except Exception as e:
                     print(f"WARNING: Gemini falhou ao gerar JSON diretamente: {e}. Tentando sem forçar e extraindo JSON.")
-                    response = await model.generate_content_async(prompt)
-                    response_text = response.text
+                    response_object = await asyncio.get_running_loop().run_in_executor(
+                        executor,
+                        lambda: model.generate_content(prompt)
+                    )
+                    response_text = response_object.text
                     return extract_json_from_text(response_text)
 
             elif llm_to_use == "huggingface":

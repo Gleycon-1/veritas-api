@@ -18,7 +18,7 @@ def get_color_from_classification(classification: str) -> str:
         "fake_news": "red",
         "sátira": "white",  # Use "white" ou "grey" conforme sua preferência visual no frontend
         "opinião": "blue",
-        "parcial": "orange",
+        "tendencioso": "orange", # Mapeado para laranja, como você solicitou
         "indefinido": "black",
         "error": "black" # Mapeamento explícito para o status de erro
     }
