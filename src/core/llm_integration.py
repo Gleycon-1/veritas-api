@@ -71,7 +71,7 @@ async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") 
     - 'sátira': O "Conteúdo a ser analisado" é humorístico, irônico, utiliza exagero ou paródia. Sua intenção NÃO é enganar, mas divertir ou criticar de forma cômica.
     - 'opinião': O "Conteúdo a ser analisado" expressa um ponto de vista pessoal, uma crença ou interpretação. Geralmente contém termos como 'eu acho', 'na minha opinião'. Ele se declara como subjetivo.
     - 'tendencioso': O "Conteúdo a ser analisado" apresenta um viés claro, favorecendo ou desfavorecendo um lado, ideia ou grupo. Ele pode omitir informações relevantes do outro lado, usar linguagem carregada ou apresentar fatos de forma seletiva para tentar influenciar o leitor, mas tentando parecer objetivo ou neutro.
-    - 'indefinido': O "Conteúdo a ser analisado" é ambíguo, carece de contexto, é sem sentido ou contém informações insuficientes para uma classificação clara em qualquer das outras categorias.
+    - 'indefinido': ambíguo, sem sentido lógico, fragmentado, ou com informações insuficientes para classificação, SEM QUALQUER INTENÇÃO DE HUMOR OU CRÍTICA.
 
     Sua resposta deve ser um objeto JSON contendo APENAS a 'classification' (uma das categorias acima) e uma 'message' (justificativa detalhada em **português**, explicando os pontos que levaram a essa conclusão e fornecendo exemplos do texto ou contexto relevante, se aplicável). A justificativa deve ser informativa e clara.
 
@@ -86,7 +86,6 @@ async def analyze_content_with_llm(content: str, preferred_llm: str = "gemini") 
     Conteúdo a ser analisado:
     "{content}"
     """
-
     llm_options = []
     # Ordem de preferência para fallback: preferencial > Gemini > Hugging Face > OpenAI
     
@@ -189,7 +188,7 @@ def analyze_content_sync(content: str, preferred_llm: str) -> Dict[str, Any]:
     try:
         llm_result = asyncio.run(
             asyncio.wait_for(
-                analyze_content_with_llm(content, preferred_llm), timeout=90
+                analyze_content_with_llm(content, preferred_llm), timeout=180
             )
         )
         
