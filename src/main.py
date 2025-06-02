@@ -1,85 +1,38 @@
-import sys
-import os
+# src/main.py
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from src.core.config import settings # Caminho corrigido
+from src.db.database import Base, sync_engine
+from src.api.routes_history import router as history_router # Verifique se este arquivo e o router existem
+from src.api.routes_auth import router as auth_router     # Verifique se este arquivo e o router existem
+from src.api.routes_analysis import router as analysis_router # Caminho e router corretos
 
-# Adiciona o diretório pai (raiz do projeto) ao sys.path
-# Isso garante que Python possa encontrar os módulos dentro de 'src'
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Importa os roteadores
-from src.api.routes_analyze import router as analyze_router
-from src.api.routes_status import router as status_router
-from src.api.routes_feedback import router as feedback_router
-from src.api.routes_history import router as router_history # Alterei para evitar conflito com 'history_router' abaixo
-from src.api.routes_crud import router as crud_router
-from src.api.routes_auth import router as auth_router
-
-# IMPORTANTE: Importa o Base, engine, AsyncSessionLocal E create_db_and_tables
-# do seu arquivo database.py. create_db_and_tables é a função que garante a criação das tabelas.
-from src.db.database import Base, engine, AsyncSessionLocal, create_db_and_tables
-
-# Importa as configurações da API (onde você define o modelo da LLM)
-from src.core.config import settings
-
-# --- NOVIDADE: Importação e Configuração do Celery ---
-from celery import Celery
-
-# Instância do Celery
-# O nome 'veritas_app' é o nome da sua aplicação Celery.
-# O 'broker' e 'backend' são lidos das suas settings (do .env).
-# 'include' especifica quais módulos contêm as tarefas do Celery (src.core.tasks).
-celery_app = Celery(
-    "veritas_app",
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND,
-    include=["src.core.tasks"] # Certifique-se de que src.core.tasks é o caminho correto para suas tarefas
-)
-# --- FIM NOVIDADE CELERY ---
-
-# --- Context Manager para o ciclo de vida da aplicação ---
-# Esta é a ÚNICA definição de lifespan que deve existir.
+# Esta função será executada antes do aplicativo iniciar e ao desligar
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("INFO: Criando tabelas do banco de dados...")
-    try:
-        # Chama a função que contém a lógica de criação de tabelas
-        await create_db_and_tables()
-        print("INFO: Tabelas do banco de dados criadas ou já existentes.")
-    except Exception as e:
-        # Se ocorrer um erro na criação das tabelas, imprime o erro e re-lança a exceção
-        print(f"ERROR: Erro ao criar tabelas do banco de dados: {e}")
-        raise # Isso fará com que o FastAPI falhe ao iniciar se as tabelas não puderem ser criadas
+    print("Initializing database...")
+    # Cria as tabelas do banco de dados (se não existirem) usando o motor síncrono.
+    # Esta operação é síncrona e não deve ser executada no loop de eventos assíncrono.
+    Base.metadata.create_all(bind=sync_engine)
+    print("Database initialized.")
     yield # O código após o 'yield' será executado no desligamento da aplicação
-    print("INFO: Aplicação desligada.")
+    print("Application shutdown.")
 
-# --- Instância da aplicação FastAPI ---
-# Esta é a ÚNICA instância de FastAPI que deve existir.
 app = FastAPI(
-    title="Veritas API",
-    description="API para análise de conteúdo com múltiplas LLMs e verificação de fontes.",
-    version="0.1.0",
-    lifespan=lifespan # Associa o lifespan definido acima à sua aplicação FastAPI
+    title=settings.PROJECT_NAME,
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    lifespan=lifespan # Adicione o gerenciador de contexto de ciclo de vida
 )
 
-# Debug: Configurações das APIs (Opcional, mas útil para verificar)
-print(f"DEBUG: Gemini API configurada. {'Sim' if settings.GEMINI_API_KEY else 'Não'}")
-print(f"DEBUG: OpenAI API configurada. {'Sim' if settings.OPENAI_API_KEY else 'Não'}")
-print(f"DEBUG: Hugging Face API configurada para o modelo: \"{settings.HUGGINGFACE_MODEL_ID}\"")
+# Inclua os roteadores da API
+app.include_router(history_router, prefix="/history", tags=["history"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(analysis_router, prefix="/analysis", tags=["analysis"]) # Prefixo para todas as rotas de análise
 
-# --- Rota de Verificação (Opcional) ---
 @app.get("/")
 async def read_root():
-    return {"message": "Bem-vindo à Veritas API! Acesse /docs para a documentação interativa."}
-
-# --- Inclusão dos roteadores da API ---
-app.include_router(crud_router)
-app.include_router(analyze_router)
-app.include_router(status_router)
-app.include_router(feedback_router)
-app.include_router(router_history) # Usei router_history aqui, verifique sua importação original
-app.include_router(auth_router)
-
-# O bloco if __name__ == "__main__": não é necessário com uvicorn src.main:app
-# e pode causar o reloader a rodar duas vezes.
-# A forma correta de iniciar é `uvicorn src.main:app --reload` no terminal.
+    return {"message": f"Welcome to {settings.PROJECT_NAME}!"}

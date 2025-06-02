@@ -1,88 +1,63 @@
-# src/db/crud_operations.py (VERSÃO CORRETA PARA O FASTAPI)
+# src/db/crud_operations.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from src.db.models import AnalysisModel
-from src.schemas.analysis_schemas import AnalysisCreate
+from sqlalchemy import select, delete
+from uuid import UUID
 from datetime import datetime
-import json
-from typing import Optional, List
-from uuid import uuid4
+from typing import List, Optional
 
-# --- Funções CRUD para o modelo Analysis (Assíncronas - para FastAPI) ---
+from src.models.analysis import Analysis  # ORM do banco - CORRIGIDO para Analysis
+# from src.schemas.analysis_schemas import AnalysisResult # Pydantic schema (para validação) - Descomentar se precisar usar um schema aqui
 
-async def get_analysis_by_id(db: AsyncSession, analysis_id: str):
+async def get_all_analyses(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Analysis]:
     """
-    Busca uma análise pelo seu ID (assíncrona).
+    Retorna todas as análises com suporte a paginação.
     """
-    result = await db.execute(select(AnalysisModel).filter(AnalysisModel.id == analysis_id))
-    db_analysis = result.scalar_one_or_none()
-    
-    if db_analysis and db_analysis.sources:
-        try:
-            db_analysis.sources = json.loads(db_analysis.sources)
-        except json.JSONDecodeError:
-            db_analysis.sources = []
-    return db_analysis
+    result = await db.execute(select(Analysis).offset(skip).limit(limit))
+    return result.scalars().all()
 
-async def get_all_analyses(db: AsyncSession):
+async def get_analysis_by_id(db: AsyncSession, analysis_id: UUID) -> Optional[Analysis]:
     """
-    Busca todas as análises no banco de dados (assíncrona).
+    Retorna uma análise específica pelo seu ID.
     """
-    result = await db.execute(select(AnalysisModel))
-    db_analyses = result.scalars().all()
-    
-    for analysis in db_analyses:
-        if analysis.sources:
-            try:
-                analysis.sources = json.loads(analysis.sources)
-            except json.JSONDecodeError:
-                analysis.sources = []
-    return db_analyses
+    # É uma boa prática converter o UUID para string apenas na comparação, se o DB armazena como string.
+    # Se o DB suporta UUID nativamente (PostgreSQL com PG_UUID), o SQLAlchemy pode lidar com isso.
+    result = await db.execute(select(Analysis).filter(Analysis.id == analysis_id))
+    return result.scalars().first()
 
-
-async def create_analysis(db: AsyncSession, analysis_data: AnalysisCreate):
+async def create_analysis_entry(
+    db: AsyncSession,
+    id: UUID,
+    content: str,          # Alinhado com o modelo Analysis
+    classification: str,   # Alinhado com o modelo Analysis
+    color: str,
+    status: str,
+    sources: str,          # Alinhado com o modelo Analysis
+    message: str,          # NOVO CAMPO: Alinhado com o modelo Analysis
+    created_at: datetime
+) -> Analysis: # O tipo de retorno deve ser Analysis, não AnalysisModel
     """
-    Cria uma nova entrada de análise no banco de dados (assíncrona).
+    Cria uma nova entrada de análise no banco de dados.
     """
-    analysis_id_str = str(uuid4()) # Sempre gera um novo UUID
-
-    sources_json = json.dumps(analysis_data.sources if analysis_data.sources is not None else [])
-
-    db_analysis = AnalysisModel(
-        id=analysis_id_str,
-        content=analysis_data.content,
-        classification="pending",
-        status="pending",
-        sources=sources_json,
-        message=None,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
-        color="⚫"
+    new_analysis = Analysis( # Use Analysis, não AnalysisModel
+        id=str(id), # Converter UUID para string se o GUID() converter para CHAR(32) no SQLite
+        content=content,
+        classification=classification,
+        color=color, # Adicionado
+        status=status,
+        sources=sources, # Adicionado
+        message=message, # Adicionado
+        created_at=created_at
     )
-    db.add(db_analysis)
+    db.add(new_analysis)
     await db.commit()
-    await db.refresh(db_analysis)
+    await db.refresh(new_analysis)
+    return new_analysis
 
-    if db_analysis.sources:
-        try:
-            db_analysis.sources = json.loads(db_analysis.sources)
-        except json.JSONDecodeError:
-            db_analysis.sources = []
-    return db_analysis
-
-
-async def delete_analysis(db: AsyncSession, analysis_id: str):
+async def delete_analysis_by_id(db: AsyncSession, analysis_id: UUID) -> bool: # Tipo de analysis_id mudou para UUID
     """
-    Exclui uma análise do banco de dados pelo seu ID (assíncrona).
+    Deleta uma análise pelo ID. Retorna True se algo foi deletado, False caso contrário.
     """
-    result = await db.execute(select(AnalysisModel).filter(AnalysisModel.id == analysis_id))
-    db_analysis = result.scalar_one_or_none()
-
-    if db_analysis:
-        await db.delete(db_analysis)
-        await db.commit()
-    return db_analysis
-
-# AS FUNÇÕES SÍNCRONAS update_analysis_details_sync e update_analysis_status_sync
-# DEVEM ESTAR APENAS EM src/db/sync_crud_operations.py
+    result = await db.execute(delete(Analysis).where(Analysis.id == analysis_id))
+    await db.commit()
+    return result.rowcount > 0 

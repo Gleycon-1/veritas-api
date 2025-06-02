@@ -1,25 +1,70 @@
-# src/schemas/analysis_schemas.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from datetime import datetime
 from typing import Optional, List
+import json
 
-# Schema para criar uma nova análise (o que o usuário envia)
 class AnalysisCreate(BaseModel):
     content: str = Field(..., example="É verdade que comer chocolate ajuda na memória?")
-    sources: Optional[List[str]] = Field([], example=["https://example.com/source1", "https://example.com/source2"])
-    preferred_llm: str = Field("huggingface", example="huggingface") # Adicionado novamente!
+    sources: Optional[List[str]] = Field(default_factory=list)
+    preferred_llm: str = Field("gemini", example="gemini")
 
-# Schema para a resposta da API (o que a API retorna sobre uma análise)
+
 class AnalyzeResponse(BaseModel):
-    id: str = Field(..., example="a1b2c3d4-e5f6-7890-1234-567890abcdef")
-    content: str = Field(..., example="É verdade que comer chocolate ajuda na memória?")
-    classification: str = Field("pending", example="fake_news")
-    status: str = Field("pending", example="completed")
-    sources: List[str] = Field([], example=["LLM_analysis", "https://example.com/verificacao"])
-    message: Optional[str] = Field(None, example="A alegação é falsa baseada em x, y, z.")
+    id: str
+    content: str
+    classification: str = "pending"
+    status: str = "pending"
+    sources_raw: Optional[str] = Field(None, alias="sources")
+    message: Optional[str] = None
+    preferred_llm: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    color: str = Field("⚫", example="🔴")
+    color: str = "⚫"
 
-    class Config:
-        from_attributes = True
+    @computed_field
+    @property
+    def sources(self) -> List[str]:
+        if self.sources_raw:
+            try:
+                return json.loads(self.sources_raw)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AnalysisStatus(BaseModel):
+    id: str
+    status: str
+    classification: str
+    color: str
+
+
+class AnalysisMessage(BaseModel):
+    new_message: str
+
+
+class AnalysisResult(BaseModel):
+    id: str
+    content: str
+    status: str
+    classification: str
+    message: Optional[str]
+    preferred_llm: Optional[str]
+    sources_raw: Optional[str] = Field(None, alias="sources")
+    created_at: datetime
+    updated_at: datetime
+    color: str
+
+    @computed_field
+    @property
+    def sources(self) -> List[str]:
+        if self.sources_raw:
+            try:
+                return json.loads(self.sources_raw)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return []
+
+    model_config = ConfigDict(from_attributes=True)

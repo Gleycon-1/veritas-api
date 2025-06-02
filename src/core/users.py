@@ -1,7 +1,8 @@
 # src/core/users.py
 
 from fastapi import Depends
-from fastapi_users import FastAPIUsers, BaseUserManager, exceptions, models, schemas
+# REMOVIDO 'schemas' daqui, pois causa importação circular interna do fastapi_users
+from fastapi_users import FastAPIUsers, BaseUserManager, exceptions, models 
 
 from typing import Optional
 
@@ -32,7 +33,8 @@ class UserManager(BaseUserManager[User, int]):
 
     # ESSENCIAL: Implementar parse_id para FastAPI-Users 11+
     # Ele converte o ID do token (string) para o tipo do seu ID de usuário (int)
-    def parse_id(self, s: str) -> models.ID:
+    # Note: Seu User.id é int, mas se fosse UUID, seria PyUUID(s)
+    def parse_id(self, s: str) -> models.ID: # models.ID é o tipo genérico do fastapi_users para IDs
         try:
             return int(s)
         except ValueError:
@@ -52,4 +54,4 @@ fastapi_users = FastAPIUsers[User, int](
 
 # Função de dependência para pegar o usuário ativo
 # Isso já estava lá, mas é bom ter o contexto
-current_active_user = fastapi_users.current_user(active=True)
+current_active_user = fastapi_users.current_user(active=True) 
