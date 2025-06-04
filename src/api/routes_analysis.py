@@ -20,6 +20,7 @@ router = APIRouter()
 # Modelo Pydantic para a requisição de análise (o que o cliente envia)
 class AnalysisRequest(BaseModel):
     content: str # Renomeado de 'text' para 'content'
+    preferred_llm: Optional[str] = None # NOVO CAMPO: Adicionado e opcional
 
 # Modelo Pydantic para a resposta da análise (o que a API retorna)
 class AnalysisResponse(BaseModel):
@@ -49,7 +50,7 @@ async def read_all_analyses(db: AsyncSession = Depends(get_db_session_async)):
 async def analyze_text(request: AnalysisRequest, db: AsyncSession = Depends(get_db_session_async)):
     """
     Recebe um texto para análise, cria uma entrada pendente no banco de dados
-    e despacha uma tarefa assíncrona para processamento (via Celery, futuramente).
+    e despacha uma tarefa assíncrona para processamento (via Celery).
     """
     new_analysis_id = uuid.uuid4()
     
@@ -68,10 +69,13 @@ async def analyze_text(request: AnalysisRequest, db: AsyncSession = Depends(get_
 
     # --- Aqui você despacharia a tarefa Celery ---
     try:
+        # Pega o preferred_llm da requisição, ou usa "gemini" como padrão se não for fornecido
+        preferred_llm_for_task = request.preferred_llm if request.preferred_llm else "gemini" 
+
         task = analyze_content_task.delay(
             str(new_analysis.id),
             new_analysis.content, # Passando o conteúdo da análise para a tarefa
-            "gemini" # Exemplo: preferred_llm. Você pode pegar isso de settings ou do request.
+            preferred_llm_for_task # AGORA PEGA DA REQUISIÇÃO!
         )
         # Opcional: Se o seu modelo Analysis tiver um campo para 'celery_task_id', atualize aqui
         # new_analysis.celery_task_id = task.id
