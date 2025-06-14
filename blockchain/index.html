@@ -1,0 +1,1122 @@
+  :root {
+        --primary: #3b82f6;
+        --secondary: #7c3aed;
+        --accent: #f59e0b;
+        --dark: #1e293b;
+        --light: #f8fafc;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Montserrat', sans-serif;
+        color: var(--light);
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Cinzel', serif;
+    }
+
+    /* Video Background */
+    .video-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+    }
+
+    .video-background::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .video-background video {
+        position: absolute;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+    }
+
+    /* Interactive elements */
+    .interactive-element {
+        transition: all 0.3s ease;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+    }
+
+    /* Navigation */
+    .nav-container {
+        position: relative;
+        z-index: 10;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link {
+        position: relative;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.3s ease;
+    }
+
+    .nav-link:hover::before {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .nav-link:hover {
+        text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    .nav-link.active::before {
+        transform: scaleX(1);
+    }
+
+    /* Interactive particles */
+    .particles-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* Content Sections */
+    .content-section {
+        position: relative;
+        z-index: 10;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 2rem;
+        transform-style: preserve-3d;
+        transition: all 0.5s ease;
+    }
+
+    .content-section:hover {
+        transform: translateZ(10px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Scroll Animations */
+    .scroll-section {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 1s ease;
+    }
+
+    .scroll-section.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Buttons */
+    .glow-button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        transform-style: preserve-3d;
+    }
+
+    .glow-button::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(45deg);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .glow-button:hover {
+        transform: translateY(-3px) translateZ(10px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .glow-button:hover::before {
+        opacity: 1;
+        animation: glow 1.5s infinite;
+    }
+
+    @keyframes glow {
+        0% {
+            transform: rotate(45deg) translateX(-100%) translateY(-100%);
+        }
+        100% {
+            transform: rotate(45deg) translateX(100%) translateY(100%);
+        }
+    }
+
+    /* 3D Card Effect */
+    .card-3d {
+        transform-style: preserve-3d;
+        transition: all 0.5s ease;
+    }
+
+    .card-3d:hover {
+        transform: rotateX(5deg) rotateY(5deg) translateZ(10px);
+        box-shadow: -10px 10px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Floating Animation */
+    .floating {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-20px);
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    /* Pulse Animation */
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* Form Input */
+    .form-input {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* Token Card */
+    .token-card {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        transform-style: preserve-3d;
+    }
+
+    .token-card:hover {
+        transform: translateY(-5px) rotateX(5deg) rotateY(5deg);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(124, 58, 237, 0.5);
+    }
+
+    /* Feature Icon */
+    .feature-icon {
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.2) translateZ(20px);
+        color: var(--accent);
+    }
+
+    /* Scroll Prompt */
+    .scroll-prompt {
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-20px);
+        }
+        60% {
+            transform: translateY(-10px);
+        }
+    }
+
+    /* Interactive cursor effects */
+    .cursor-follower {
+        position: fixed;
+        width: 30px;
+        height: 30px;
+        background: rgba(59, 130, 246, 0.5);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: transform 0.1s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease;
+        mix-blend-mode: screen;
+    }
+
+    .cursor-follower.active {
+        width: 50px;
+        height: 50px;
+        background: rgba(124, 58, 237, 0.5);
+    }
+
+    /* Interactive ripple effect */
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(0);
+        animation: ripple-effect 1s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple-effect {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* Video loading overlay */
+    .video-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        transition: opacity 1s ease;
+    }
+
+    .video-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #FFF;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+<!-- Video Background -->
+<div class="video-background">
+    <video autoplay muted loop playsinline id="background-video">
+        <!-- Vídeo principal de uma cidade medieval com castelo vista de cima -->
+        <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-neuschwanstein-castle-5060/1080p.mp4" type="video/mp4">
+        <!-- Vídeo alternativo caso o primeiro não carregue -->
+        <source src="https://cdn.coverr.co/videos/coverr-aerial-shot-of-a-castle-2683/1080p.mp4" type="video/mp4">
+        <!-- Terceira opção de vídeo -->
+        <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-castle-in-germany-5059/1080p.mp4" type="video/mp4">
+        Seu navegador não suporta vídeos HTML5.
+    </video>
+</div>
+
+<!-- Interactive particles container -->
+<div class="particles-container" id="particles-container"></div>
+
+<!-- Custom cursor follower -->
+<div class="cursor-follower" id="cursor-follower"></div>
+
+<!-- Header/Navigation -->
+<header class="nav-container py-4 sticky top-0">
+    <div class="container mx-auto px-4">
+        <nav class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-4 md:mb-0">
+                <div class="mr-3 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center interactive-element">
+                    <div class="w-8 h-8 bg-dark rounded-full flex items-center justify-center">
+                        <span class="text-accent font-bold">V</span>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-bold text-white">VERITAS <span class="text-blue-400">Blockchain</span></h1>
+            </div>
+            <div class="flex space-x-8">
+                <a href="#home" class="nav-link text-white active" data-section="home">Início</a>
+                <a href="#about" class="nav-link text-white" data-section="about">Sobre</a>
+                <a href="#features" class="nav-link text-white" data-section="features">Recursos</a>
+                <a href="#token" class="nav-link text-white" data-section="token">Token</a>
+                <a href="#contact" class="nav-link text-white" data-section="contact">Contato</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section id="home" class="relative z-10 min-h-screen flex items-center">
+    <div class="container mx-auto px-4 py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="text-center lg:text-left">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                    <span class="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">VERITAS</span>
+                    <span class="block">Combatendo Fake News com Blockchain</span>
+                </h1>
+                <p class="text-xl text-gray-300 mb-8">A primeira API de verificação de fatos descentralizada, garantindo a verdade através da tecnologia blockchain.</p>
+                <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+                    <a href="#about" class="glow-button bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-medium hover:shadow-lg transition-all">Explorar</a>
+                    <a href="#features" class="border border-blue-400 text-blue-400 px-8 py-3 rounded-full font-medium hover:bg-blue-400 hover:text-dark transition-all">Saiba Mais</a>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute w-64 h-64 bg-blue-500 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
+                <div class="relative z-10 floating interactive-element">
+                    <svg class="w-full h-auto" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="tokenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#7c3aed" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="200" cy="200" r="180" fill="url(#tokenGrad)" opacity="0.2" />
+                        <circle cx="200" cy="200" r="150" fill="url(#tokenGrad)" opacity="0.4" />
+                        <circle cx="200" cy="200" r="120" fill="url(#tokenGrad)" />
+                        <path d="M200,80 L230,150 L305,150 L245,195 L270,270 L200,225 L130,270 L155,195 L95,150 L170,150 Z" fill="#f8fafc" />
+                        <circle cx="200" cy="200" r="30" fill="#f8fafc" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-center">
+            <div class="scroll-prompt text-white">
+                <p class="mb-2">Explore o Reino da Verdade</p>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="relative z-10 py-20 scroll-section">
+    <div class="container mx-auto px-4">
+        <div class="content-section p-8 md:p-12">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">A Torre do Conhecimento</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">Descubra como a Veritas está revolucionando a verificação de fatos através da tecnologia blockchain.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gradient-to-b from-blue-900 to-purple-900 p-6 h-80 flex flex-col justify-end rounded-xl card-3d">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">Torre Norte</h3>
+                        <p class="text-gray-300">Visão da Tecnologia Blockchain que garante a imutabilidade dos dados verificados.</p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-b from-purple-900 to-indigo-900 p-6 h-80 flex flex-col justify-end rounded-xl card-3d">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">Torre Central</h3>
+                        <p class="text-gray-300">O Grande Castelo da Verdade, onde os fatos são verificados e registrados permanentemente.</p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-b from-indigo-900 to-blue-900 p-6 h-80 flex flex-col justify-end rounded-xl card-3d">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">Torre Sul</h3>
+                        <p class="text-gray-300">Visão da Comunidade que contribui para a verificação e disseminação da verdade.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Token Section -->
+<section id="token" class="relative z-10 py-20 scroll-section">
+    <div class="container mx-auto px-4">
+        <div class="content-section p-8 md:p-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h3 class="text-3xl font-bold mb-6">O Token VERITAS</h3>
+                    <p class="text-lg text-gray-300 mb-6">O token VERITAS é o combustível que alimenta nosso ecossistema de verificação de fatos. Ele recompensa verificadores, incentiva a participação e garante a sustentabilidade do projeto.</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-check text-xs text-white"></i>
+                            </div>
+                            <p class="text-gray-300">Recompensas para verificadores de fatos</p>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-check text-xs text-white"></i>
+                            </div>
+                            <p class="text-gray-300">Governança descentralizada do protocolo</p>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-check text-xs text-white"></i>
+                            </div>
+                            <p class="text-gray-300">Acesso à API de verificação de fatos</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="token-card p-6 rounded-xl">
+                        <div class="text-4xl text-blue-400 mb-4">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Fornecimento Total</h4>
+                        <p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">100.000.000</p>
+                        <p class="text-gray-400">VERITAS</p>
+                    </div>
+                    <div class="token-card p-6 rounded-xl">
+                        <div class="text-4xl text-blue-400 mb-4">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Preço Atual</h4>
+                        <p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">$0.85</p>
+                        <p class="text-gray-400">USD</p>
+                    </div>
+                    <div class="token-card p-6 rounded-xl">
+                        <div class="text-4xl text-blue-400 mb-4">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Verificadores</h4>
+                        <p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">5.280</p>
+                        <p class="text-gray-400">Ativos</p>
+                    </div>
+                    <div class="token-card p-6 rounded-xl">
+                        <div class="text-4xl text-blue-400 mb-4">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Fatos Verificados</h4>
+                        <p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">1.2M</p>
+                        <p class="text-gray-400">E contando</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="relative z-10 py-20 scroll-section">
+    <div class="container mx-auto px-4">
+        <div class="content-section p-8 md:p-12">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Recursos do Reino</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">Explore as ferramentas e serviços que a Veritas oferece para combater a desinformação.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all">
+                    <div class="feature-icon text-5xl text-blue-400 mb-6">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">API de Verificação</h3>
+                    <p class="text-gray-300">Integre nossa API em seu aplicativo ou site para verificar fatos em tempo real com a confiabilidade da blockchain.</p>
+                </div>
+                <div class="feature-card bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all">
+                    <div class="feature-icon text-5xl text-blue-400 mb-6">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Proteção contra Fake News</h3>
+                    <p class="text-gray-300">Algoritmos avançados que detectam padrões de desinformação e alertam sobre conteúdos potencialmente falsos.</p>
+                </div>
+                <div class="feature-card bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all">
+                    <div class="feature-icon text-5xl text-blue-400 mb-6">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Comunidade de Verificadores</h3>
+                    <p class="text-gray-300">Torne-se um verificador e ganhe tokens VERITAS enquanto contribui para um mundo mais informado.</p>
+                </div>
+                <div class="feature-card bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all">
+                    <div class="feature-icon text-5xl text-blue-400 mb-6">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Rastreamento de Origem</h3>
+                    <p class="text-gray-300">Acompanhe a origem e a propagação de informações através de nossa tecnologia de rastreamento blockchain.</p>
+                </div>
+                <div class="feature-card bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all">
+                    <div class="feature-icon text-5xl text-blue-400 mb-6">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">IA de Análise</h3>
+                    <p class="text-gray-300">Inteligência artificial que analisa o contexto e a veracidade das informações com precisão crescente.</p>
+                </div>
+                <div class="feature-card bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all">
+                    <div class="feature-icon text-5xl text-blue-400 mb-6">
+                        <i class="fas fa-vote-yea"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Governança DAO</h3>
+                    <p class="text-gray-300">Participe das decisões do protocolo através de nossa organização autônoma descentralizada.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="relative z-10 py-20 scroll-section">
+    <div class="container mx-auto px-4">
+        <div class="content-section p-8 md:p-12">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Junte-se ao Reino da Verdade</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">Entre em contato para saber mais sobre como a Veritas pode ajudar você ou sua organização a combater a desinformação.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <form class="space-y-6">
+                        <div>
+                            <label for="name" class="block text-gray-300 mb-2">Nome</label>
+                            <input type="text" id="name" class="form-input w-full px-4 py-3 rounded-lg bg-dark bg-opacity-50 text-white border border-gray-700 focus:border-blue-500 focus:outline-none" placeholder="Seu nome">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-gray-300 mb-2">Email</label>
+                            <input type="email" id="email" class="form-input w-full px-4 py-3 rounded-lg bg-dark bg-opacity-50 text-white border border-gray-700 focus:border-blue-500 focus:outline-none" placeholder="seu@email.com">
+                        </div>
+                        <div>
+                            <label for="subject" class="block text-gray-300 mb-2">Assunto</label>
+                            <select id="subject" class="form-input w-full px-4 py-3 rounded-lg bg-dark bg-opacity-50 text-white border border-gray-700 focus:border-blue-500 focus:outline-none">
+                                <option value="">Selecione um assunto</option>
+                                <option value="api">API de Verificação</option>
+                                <option value="token">Token VERITAS</option>
+                                <option value="partnership">Parceria</option>
+                                <option value="other">Outro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="message" class="block text-gray-300 mb-2">Mensagem</label>
+                            <textarea id="message" rows="5" class="form-input w-full px-4 py-3 rounded-lg bg-dark bg-opacity-50 text-white border border-gray-700 focus:border-blue-500 focus:outline-none" placeholder="Sua mensagem..."></textarea>
+                        </div>
+                        <div>
+                            <button type="submit" class="glow-button w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all">Enviar Mensagem</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <div class="bg-dark bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl border border-gray-700 card-3d">
+                        <h3 class="text-2xl font-bold mb-6">Informações de Contato</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-map-marker-alt text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold mb-1">Localização</h4>
+                                    <p class="text-gray-300">Reino da Verdade, Castelo Central</p>
+                                    <p class="text-gray-300">Cidade Digital, Blockchain</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-envelope text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold mb-1">Email</h4>
+                                    <p class="text-gray-300">contato@veritas-blockchain.com</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center mr-4">
+                                    <i class="fas fa-globe text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold mb-1">Redes Sociais</h4>
+                                    <div class="flex space-x-4 mt-2">
+                                        <a href="#" class="w-10 h-10 rounded-full bg-dark flex items-center justify-center border border-gray-700 hover:border-blue-500 transition-all">
+                                            <i class="fab fa-twitter text-blue-400"></i>
+                                        </a>
+                                        <a href="#" class="w-10 h-10 rounded-full bg-dark flex items-center justify-center border border-gray-700 hover:border-blue-500 transition-all">
+                                            <i class="fab fa-telegram text-blue-400"></i>
+                                        </a>
+                                        <a href="#" class="w-10 h-10 rounded-full bg-dark flex items-center justify-center border border-gray-700 hover:border-blue-500 transition-all">
+                                            <i class="fab fa-discord text-blue-400"></i>
+                                        </a>
+                                        <a href="#" class="w-10 h-10 rounded-full bg-dark flex items-center justify-center border border-gray-700 hover:border-blue-500 transition-all">
+                                            <i class="fab fa-github text-blue-400"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="relative z-10 bg-dark bg-opacity-80 backdrop-filter backdrop-blur-lg pt-16 pb-8 border-t border-gray-800">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div>
+                <div class="flex items-center mb-4">
+                    <div class="mr-3 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <div class="w-6 h-6 bg-dark rounded-full flex items-center justify-center">
+                            <span class="text-accent font-bold text-xs">V</span>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">VERITAS</h3>
+                </div>
+                <p class="text-gray-400 mb-4">Combatendo fake news com a tecnologia blockchain, garantindo um mundo mais informado e verdadeiro.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-lg font-bold text-white mb-4">Links Rápidos</h4>
+                <ul class="space-y-2">
+                    <li><a href="#home" class="text-gray-400 hover:text-blue-400 transition-colors">Início</a></li>
+                    <li><a href="#about" class="text-gray-400 hover:text-blue-400 transition-colors">Sobre</a></li>
+                    <li><a href="#features" class="text-gray-400 hover:text-blue-400 transition-colors">Recursos</a></li>
+                    <li><a href="#contact" class="text-gray-400 hover:text-blue-400 transition-colors">Contato</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-lg font-bold text-white mb-4">Recursos</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">Documentação da API</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">Whitepaper</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">Roadmap</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors">Tokenomics</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-lg font-bold text-white mb-4">Newsletter</h4>
+                <p class="text-gray-400 mb-4">Inscreva-se para receber as últimas notícias e atualizações.</p>
+                <form class="flex">
+                    <input type="email" placeholder="Seu email" class="form-input px-4 py-2 rounded-l-lg bg-dark bg-opacity-50 text-white border border-gray-700 focus:border-blue-500 focus:outline-none flex-grow">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 pt-8 text-center">
+            <p class="text-gray-400">&copy; 2023 Veritas Blockchain. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Initialize interactive elements when the document is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize video background
+        const video = document.getElementById('background-video');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // Lista de URLs de vídeos de castelos medievais reais (vista aérea)
+        const videoUrls = [
+            "https://cdn.coverr.co/videos/coverr-aerial-view-of-neuschwanstein-castle-5060/1080p.mp4",
+            "https://cdn.coverr.co/videos/coverr-aerial-shot-of-a-castle-2683/1080p.mp4",
+            "https://cdn.coverr.co/videos/coverr-aerial-view-of-a-castle-in-germany-5059/1080p.mp4",
+            "https://cdn.coverr.co/videos/coverr-flying-over-a-medieval-castle-4204/1080p.mp4",
+            "https://cdn.coverr.co/videos/coverr-medieval-castle-with-flags-on-the-towers-4064/1080p.mp4"
+        ];
+        
+        // Função para tentar carregar vídeos da lista
+        let currentVideoIndex = 0;
+        
+        function tryLoadVideo() {
+            if (currentVideoIndex >= videoUrls.length) {
+                // Se todos os vídeos falharem, mostrar uma mensagem
+                console.error("Não foi possível carregar nenhum vídeo");
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+            
+            video.src = videoUrls[currentVideoIndex];
+            video.load();
+            currentVideoIndex++;
+        }
+        
+        // Evento quando o vídeo está pronto para reproduzir
+        video.addEventListener('canplaythrough', function() {
+            loadingOverlay.classList.add('hidden');
+        });
+        
+        // Evento de erro ao carregar o vídeo
+        video.addEventListener('error', function() {
+            console.log("Erro ao carregar vídeo, tentando próximo...");
+            tryLoadVideo();
+        });
+        
+        // Iniciar carregamento do primeiro vídeo
+        tryLoadVideo();
+        
+        // Definir um timeout para esconder o overlay de carregamento mesmo se o vídeo não carregar
+        setTimeout(function() {
+            loadingOverlay.classList.add('hidden');
+        }, 8000);
+
+        // Initialize interactive particles
+        initParticles();
+        
+        // Initialize custom cursor
+        initCustomCursor();
+        
+        // Initialize 3D card effects
+        init3DCardEffects();
+        
+        // Initialize scroll animations
+        initScrollAnimations();
+        
+        // Initialize ripple effects
+        initRippleEffects();
+        
+        // Initialize navigation highlighting
+        initNavHighlighting();
+        
+        // Initialize video interaction
+        initVideoInteraction();
+    });
+
+    // Create interactive particles that follow mouse movement
+    function initParticles() {
+        const particlesContainer = document.getElementById('particles-container');
+        const particleCount = 50;
+        const particles = [];
+        
+        // Create particles
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random size between 2px and 5px
+            const size = Math.random() * 3 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // Random initial position
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            
+            // Random opacity
+            particle.style.opacity = Math.random() * 0.5 + 0.2;
+            
+            particlesContainer.appendChild(particle);
+            particles.push({
+                element: particle,
+                x: parseFloat(particle.style.left),
+                y: parseFloat(particle.style.top),
+                speedX: Math.random() * 0.5 - 0.25,
+                speedY: Math.random() * 0.5 - 0.25,
+                size: size
+            });
+        }
+        
+        // Mouse position
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        // Update mouse position
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update particles to follow mouse with delay
+            particles.forEach((particle, index) => {
+                // Calculate distance from mouse
+                const dx = mouseX - (particle.x / 100 * window.innerWidth);
+                const dy = mouseY - (particle.y / 100 * window.innerHeight);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // If particle is close to mouse, make it move away from mouse
+                if (distance < 150) {
+                    const angle = Math.atan2(dy, dx);
+                    particle.speedX = -Math.cos(angle) * (0.5 + Math.random() * 0.5);
+                    particle.speedY = -Math.sin(angle) * (0.5 + Math.random() * 0.5);
+                }
+            });
+        });
+        
+        // Animate particles
+        function animateParticles() {
+            particles.forEach((particle, index) => {
+                // Update position
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                
+                // Boundary check
+                if (particle.x < 0) {
+                    particle.x = 0;
+                    particle.speedX *= -1;
+                } else if (particle.x > 100) {
+                    particle.x = 100;
+                    particle.speedX *= -1;
+                }
+                
+                if (particle.y < 0) {
+                    particle.y = 0;
+                    particle.speedY *= -1;
+                } else if (particle.y > 100) {
+                    particle.y = 100;
+                    particle.speedY *= -1;
+                }
+                
+                // Apply friction
+                particle.speedX *= 0.99;
+                particle.speedY *= 0.99;
+                
+                // Apply random movement
+                particle.speedX += (Math.random() - 0.5) * 0.1;
+                particle.speedY += (Math.random() - 0.5) * 0.1;
+                
+                // Update element position
+                particle.element.style.left = `${particle.x}%`;
+                particle.element.style.top = `${particle.y}%`;
+            });
+            
+            requestAnimationFrame(animateParticles);
+        }
+        
+        animateParticles();
+    }
+
+    // Custom cursor follower
+    function initCustomCursor() {
+        const cursor = document.getElementById('cursor-follower');
+        
+        document.addEventListener('mousemove', function(e) {
+            cursor.style.left = `${e.clientX}px`;
+            cursor.style.top = `${e.clientY}px`;
+        });
+        
+        // Add active class on interactive elements
+        const interactiveElements = document.querySelectorAll('a, button, .interactive-element');
+        interactiveElements.forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                cursor.classList.add('active');
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                cursor.classList.remove('active');
+            });
+        });
+        
+        // Hide default cursor
+        document.body.style.cursor = 'none';
+        
+        // Show default cursor on interactive elements for better UX
+        interactiveElements.forEach(element => {
+            element.style.cursor = 'pointer';
+        });
+    }
+
+    // 3D card effects
+    function init3DCardEffects() {
+        const cards = document.querySelectorAll('.card-3d');
+        
+        cards.forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const angleX = (y - centerY) / 20;
+                const angleY = (centerX - x) / 20;
+                
+                card.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) translateZ(10px)`;
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                card.style.transform = 'rotateX(0) rotateY(0) translateZ(0)';
+            });
+        });
+    }
+
+    // Scroll animations
+    function initScrollAnimations() {
+        const scrollSections = document.querySelectorAll('.scroll-section');
+        
+        function checkScroll() {
+            scrollSections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (sectionTop < windowHeight * 0.75) {
+                    section.classList.add('visible');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', checkScroll);
+        window.addEventListener('load', checkScroll);
+    }
+
+    // Ripple effects
+    function initRippleEffects() {
+        const buttons = document.querySelectorAll('.glow-button');
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const rect = button.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                button.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 1000);
+            });
+        });
+    }
+
+    // Navigation highlighting
+    function initNavHighlighting() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section');
+        
+        function highlightNav() {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (window.pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', highlightNav);
+        window.addEventListener('load', highlightNav);
+    }
+
+    // Interactive video background
+    function initVideoInteraction() {
+        const video = document.getElementById('background-video');
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let moveX = 0;
+        let moveY = 0;
+        
+        // Smooth parallax effect
+        document.addEventListener('mousemove', function(e) {
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+        
+        function updateVideoPosition() {
+            // Calculate target position
+            const targetX = (lastMouseX - window.innerWidth / 2) * 0.01;
+            const targetY = (lastMouseY - window.innerHeight / 2) * 0.01;
+            
+            // Smooth transition
+            moveX += (targetX - moveX) * 0.05;
+            moveY += (targetY - moveY) * 0.05;
+            
+            // Apply transform
+            if (video) {
+                video.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
+            }
+            
+            requestAnimationFrame(updateVideoPosition);
+        }
+        
+        updateVideoPosition();
+    }
+
+    // Form submission (demo only)
+    const contactForm = document.querySelector('#contact form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Obrigado por entrar em contato! Esta é uma demonstração, então sua mensagem não foi enviada.');
+        });
+    }
+</script>
