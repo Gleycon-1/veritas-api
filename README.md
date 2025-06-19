@@ -28,7 +28,7 @@ Para fornecer uma representação visual rápida e intuitiva da natureza do cont
 * 🔴 **Vermelho**: **Fake news** ou desinformação, conteúdo comprovadamente falso ou enganoso, criado para manipular.
 * ⚪ **Branco/Cinzento**: **Sátira**, conteúdo humorístico, irônico ou que utiliza o exagero e a paródia. **Não tem intenção de enganar**, mas de divertir ou criticar de forma cômica.
 * 🔵 **Azul**: **Opinião**, expressão de um ponto de vista pessoal, crença ou interpretação. Geralmente se declara como tal e **não busca disfarçar sua natureza subjetiva.**
-* 🟠 **Laranja**: Conteúdo **parcial** ou tendencioso, que apresenta um viés claro, favorecendo ou desfavorecendo um lado, uma ideia ou um grupo. Pode usar linguagem carregada e **tenta parecer objetivo ou neutro, mas não é.**
+* 🟠 **Laranja**: Conteúdo **Tendencioso** ou parcial, que apresenta um viés claro, favorecendo ou desfavorecendo um lado, uma ideia ou um grupo. Pode usar linguagem carregada e **tenta parecer objetivo ou neutro, mas não é.**
 * ⚫ **Preto**: **Indefinido** ou erro, para conteúdo ambíguo, sem contexto, com informações insuficientes para uma classificação clara, ou quando ocorre um erro técnico na análise.
 
 ---
